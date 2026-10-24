@@ -1,0 +1,191 @@
+.card {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  border-radius: 18px;
+
+  background: var(--surface);
+
+  border: 1px solid var(--border);
+
+  box-shadow: var(--shadow-sm);
+
+  cursor: pointer;
+
+  transition:
+    transform .2s ease,
+    box-shadow .2s ease,
+    border-color .2s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+
+  box-shadow: var(--shadow-md);
+
+  border-color: var(--primary);
+}
+
+.card:focus-visible {
+  outline: 3px solid rgba(249, 115, 22, .25);
+
+  outline-offset: 2px;
+}
+
+/* =========================================
+   IMAGEM
+========================================= */
+
+.imageContainer {
+  position: relative;
+
+  width: 100%;
+
+  overflow: hidden;
+
+  background: var(--surface-soft);
+}
+
+/* =========================================
+   BADGE PROMOVIDO
+========================================= */
+
+.promotedBadge {
+  position: absolute;
+
+  top: 10px;
+  left: 10px;
+
+  padding: 6px 10px;
+
+  border-radius: 999px;
+
+  background: var(--primary);
+
+  color: #fff;
+
+  font-size: 11px;
+
+  font-weight: 800;
+
+  box-shadow:
+    0 5px 14px rgba(249, 115, 22, .28);
+}
+
+/* =========================================
+   CONTEÚDO
+========================================= */
+
+.content {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 7px;
+
+  padding: 13px 14px 15px;
+}
+
+.productName {
+  margin: 0;
+
+  color: var(--text);
+
+  font-size: 15px;
+
+  font-weight: 700;
+
+  line-height: 1.3;
+
+  display: -webkit-box;
+
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+
+  -webkit-box-orient: vertical;
+
+  overflow: hidden;
+}
+
+/* =========================================
+   BANCA
+========================================= */
+
+.store {
+  display: flex;
+
+  align-items: center;
+
+  gap: 7px;
+
+  min-width: 0;
+
+  color: var(--text-soft);
+
+  font-size: 12px;
+}
+
+.storeAvatar {
+  width: 24px;
+  height: 24px;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  object-fit: cover;
+
+  border: 1px solid var(--border);
+}
+
+.storeName {
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+.verified {
+  margin-left: 4px;
+
+  color: var(--primary);
+
+  font-weight: 800;
+}
+
+/* =========================================
+   PREÇO
+========================================= */
+
+.price {
+  color: var(--text);
+
+  font-size: 17px;
+
+  font-weight: 800;
+}
+
+/* =========================================
+   LEILÃO
+========================================= */
+
+.auction {
+  color: var(--primary);
+
+  font-size: 11px;
+
+  font-weight: 800;
+}
+
+.auctionClosed {
+  color: #d32f2f;
+
+  font-size: 11px;
+
+  font-weight: 800;
+}

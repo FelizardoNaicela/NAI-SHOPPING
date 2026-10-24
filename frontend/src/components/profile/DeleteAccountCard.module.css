@@ -1,0 +1,117 @@
+.card{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:14px;
+
+    padding:24px;
+
+    border-radius:14px;
+
+    background:var(--surface);
+
+    border:1px solid var(--danger);
+
+    box-shadow:0 4px 14px rgba(0,0,0,.06);
+
+}
+
+.title{
+
+    margin:0;
+
+    color:var(--danger);
+
+}
+
+.input{
+
+    width:100%;
+
+    padding:12px;
+
+    border-radius:10px;
+
+    border:1px solid var(--border);
+
+    background:var(--surface);
+
+    color:var(--text);
+
+    font-size:15px;
+
+    outline:none;
+
+    transition:
+        border-color .2s,
+        box-shadow .2s;
+
+}
+
+.input::placeholder{
+
+    color:var(--text-secondary);
+
+}
+
+.input:focus{
+
+    border-color:var(--danger);
+
+    box-shadow:
+        0 0 0 4px color-mix(in srgb,var(--danger) 15%,transparent);
+
+}
+
+.submitButton{
+
+    margin-top:20px;
+
+    width:100%;
+
+    padding:12px 18px;
+
+    border:none;
+
+    border-radius:10px;
+
+    background:var(--danger);
+
+    color:var(--button-text);
+
+    font-size:15px;
+
+    font-weight:600;
+
+    cursor:pointer;
+
+    transition:
+        transform .18s,
+        opacity .2s,
+        background .2s;
+
+}
+
+.submitButton:hover:not(:disabled){
+
+    background:var(--danger-hover);
+
+    transform:translateY(-1px);
+
+}
+
+.submitButton:active:not(:disabled){
+
+    transform:scale(.98);
+
+}
+
+.submitButton:disabled{
+
+    opacity:.6;
+
+    cursor:not-allowed;
+
+}

@@ -1,0 +1,144 @@
+.label {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.input {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px;
+  box-sizing: border-box;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+}
+
+.results {
+  display: flex;
+  flex-direction: column;
+  margin-top: 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  background: var(--surface);
+}
+
+.row + .row {
+  border-top: 1px solid var(--border);
+}
+
+.who {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 160px;
+}
+
+.who span {
+  font-size: 12px;
+  color: var(--text-soft);
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.primary,
+.secondary,
+.danger {
+  padding: 8px 12px;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.primary {
+  border: none;
+  background: var(--primary);
+  color: var(--text-on-primary);
+}
+
+.secondary {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.danger {
+  border: 1px solid var(--danger-border);
+  background: var(--danger-surface);
+  color: var(--danger);
+}
+
+.primary:disabled,
+.secondary:disabled,
+.danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.badge {
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.sACTIVE {
+  background: var(--success-surface);
+  color: var(--success);
+}
+
+.sSUSPENDED {
+  background: var(--warning-surface);
+  color: var(--warning);
+}
+
+.sREVOKED {
+  background: var(--danger-surface);
+  color: var(--danger);
+}
+
+.empty {
+  margin: 0;
+  padding: 18px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  text-align: center;
+  color: var(--text-soft);
+}
+
+.error,
+.success {
+  padding: 11px 13px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.error {
+  background: var(--danger-surface);
+  border: 1px solid var(--danger-border);
+  color: var(--danger);
+}
+
+.success {
+  background: var(--success-surface);
+  border: 1px solid var(--success-border);
+  color: var(--success);
+}

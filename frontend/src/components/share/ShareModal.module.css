@@ -1,0 +1,164 @@
+.overlay{
+
+    position:fixed;
+
+    inset:0;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    padding:20px;
+
+    background:rgba(0,0,0,.45);
+
+    z-index:999999;
+
+}
+
+.modal{
+
+    width:min(430px,calc(100vw - 20px));
+
+    max-height:90vh;
+
+    display:flex;
+
+    flex-direction:column;
+
+    overflow:hidden;
+
+    border-radius:18px;
+
+    background:var(--surface);
+
+    border:1px solid var(--border);
+
+    box-shadow:0 20px 60px rgba(0,0,0,.28);
+
+}
+
+.header{
+
+    padding:18px;
+
+    font-size:20px;
+
+    font-weight:700;
+
+    border-bottom:1px solid var(--border);
+
+}
+
+.body{
+
+    flex:1;
+
+    display:flex;
+
+    flex-direction:column;
+
+    overflow:hidden;
+
+}
+
+.section{
+
+    padding:16px;
+
+    border-bottom:1px solid var(--border);
+
+}
+
+.footer{
+
+    padding:16px;
+
+    border-top:1px solid var(--border);
+
+}
+
+.primaryButton{
+
+    width:100%;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    gap:10px;
+
+    padding:14px 16px;
+
+    border:1px solid var(--border);
+
+    border-radius:12px;
+
+    background:var(--surface);
+
+    color:var(--text);
+
+    cursor:pointer;
+
+    font-size:15px;
+
+    font-weight:600;
+
+    transition:
+        background .2s,
+        border-color .2s,
+        transform .18s;
+
+}
+
+.primaryButton:hover{
+
+    background:var(--surface-hover);
+
+    border-color:var(--accent);
+
+}
+
+.primaryButton:active{
+
+    transform:scale(.98);
+
+}
+
+.secondaryButton{
+
+    width:100%;
+
+    padding:12px;
+
+    border-radius:12px;
+
+    border:1px solid var(--border);
+
+    background:var(--surface);
+
+    color:var(--text);
+
+    cursor:pointer;
+
+    transition:
+        background .2s,
+        transform .18s;
+
+}
+
+.secondaryButton:hover{
+
+    background:var(--surface-hover);
+
+}
+
+.secondaryButton:active{
+
+    transform:scale(.98);
+
+}

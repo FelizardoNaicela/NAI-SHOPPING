@@ -1,0 +1,67 @@
+# Dependencies
+**/node_modules/
+
+# Build output
+**/dist/
+**/dist-ssr/
+**/build/
+**/coverage/
+**/.nyc_output/
+
+# Environment variables and secrets
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.*.example
+
+# Logs
+**/logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Operating system
+.DS_Store
+Thumbs.db
+
+# Temporary files
+**/.temp/
+**/.tmp/
+**/temp/
+**/tmp/
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Diagnostic reports
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Generated Prisma
+**/generated/prisma/
+
+# IDEs and editors
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+
+# Local workspace files
+*.code-workspace
+
+# Uploads e evidências de teste (dados gerados durante a execução)
+backend/uploads/
+backend/legal-evidence/

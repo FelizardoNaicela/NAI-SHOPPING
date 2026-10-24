@@ -1,0 +1,321 @@
+.page {
+  /* Letra padrão do painel. Se instalares a Inter (secção 7), ela é usada. */
+  --admin-font: "Inter Variable", "Inter", system-ui, -apple-system, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* Variáveis que os componentes usam e o teu tema não define:
+     apontam para as que já existem (e por isso seguem o modo escuro). */
+  --text-secondary: var(--text-soft);
+  --surface-2: var(--surface-glass);
+  --surface-soft: var(--surface-glass);
+  --input-surface: var(--surface);
+  --border-soft: var(--border);
+  --card-shadow: var(--shadow-sm);
+  --shadow-soft: var(--shadow-sm);
+  --modal-shadow: var(--shadow-lg);
+  --modal-backdrop: rgba(0, 0, 0, 0.55);
+
+  /* Cores de estado: tons médios que funcionam em claro e escuro */
+  --success: color-mix(in srgb, #1f9d55 70%, var(--text));
+  --success-surface: rgba(31, 157, 85, 0.14);
+  --success-border: rgba(31, 157, 85, 0.32);
+  --danger: color-mix(in srgb, #e5484d 70%, var(--text));
+  --danger-surface: rgba(229, 72, 77, 0.1);
+  --danger-border: rgba(229, 72, 77, 0.32);
+  --danger-text: var(--text-soft);
+  --warning: color-mix(in srgb, #e08a2e 70%, var(--text));
+  --warning-surface: rgba(224, 138, 46, 0.12);
+  --warning-border: rgba(224, 138, 46, 0.35);
+  --error-text: var(--danger);
+  --error-bg: var(--danger-surface);
+  --error-border: var(--danger-border);
+
+  --admin-super-bg: rgba(124, 92, 230, 0.16);
+  --admin-super-text: color-mix(in srgb, #7c5ce6 70%, var(--text));
+  --admin-regional-bg: rgba(59, 130, 246, 0.15);
+  --admin-regional-text: color-mix(in srgb, #3b82f6 70%, var(--text));
+  --admin-active-bg: var(--success-surface);
+  --admin-active-text: var(--success);
+  --admin-basic-text: color-mix(in srgb, #3b82f6 70%, var(--text));
+  --admin-premium-text: color-mix(in srgb, #d4a017 70%, var(--text));
+
+  width: 100%;
+  min-height: 100vh;
+  padding: 32px 20px 60px;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  color: var(--text);
+  font-family: var(--admin-font);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- Base dos controlos ---------- */
+
+.page button,
+.page input,
+.page select,
+.page textarea {
+  font-family: inherit;
+}
+
+.page input,
+.page select,
+.page textarea {
+  color: var(--text);
+}
+
+.page input::placeholder,
+.page textarea::placeholder {
+  color: var(--text-soft);
+  opacity: 0.75;
+}
+
+.page input[type="checkbox"] {
+  accent-color: var(--primary);
+}
+
+.page input:focus-visible,
+.page select:focus-visible,
+.page textarea:focus-visible {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 25%, transparent);
+}
+
+.page button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.page button:not(:disabled):hover {
+  filter: brightness(1.05);
+}
+
+/* Filtro de regiões do AdminManagement (não tinha estilos) */
+
+.page :global(.admin-management-filters) {
+  margin-top: 4px;
+}
+
+.page :global(.admin-management-filters) label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-soft);
+}
+
+.page :global(.admin-management-filters) select {
+  min-height: 38px;
+  min-width: 190px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* ---------- Estrutura ---------- */
+
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.eyebrow {
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  color: var(--text-soft);
+}
+
+.title {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.subtitle {
+  margin: 6px 0 0;
+  color: var(--text-soft);
+}
+
+.rankingButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 10px;
+  background: var(--primary);
+  color: var(--text-on-primary);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ---------- Estados ---------- */
+
+.stateCard {
+  width: 100%;
+  max-width: 560px;
+  margin: 80px auto;
+  padding: 28px;
+  box-sizing: border-box;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+}
+
+.stateCardError {
+  border-color: var(--danger-border);
+  text-align: left;
+}
+
+.stateTitle {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 800;
+}
+
+.stateCardError .stateTitle {
+  color: var(--danger);
+}
+
+.stateText {
+  margin: 8px 0 0;
+  color: var(--text-soft);
+}
+
+/* ---------- Perfil ---------- */
+
+.profileMain {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface-glass);
+  font-size: 21px;
+  font-weight: 800;
+}
+
+.profileInfo {
+  min-width: 0;
+}
+
+.profileName {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.profileEmail {
+  margin: 3px 0 0;
+  color: var(--text-soft);
+  overflow-wrap: anywhere;
+}
+
+.profileMeta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.metaItem {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  min-width: 0;
+}
+
+.metaLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+.metaValue {
+  font-size: 14px;
+}
+
+.badge {
+  display: inline-flex;
+  padding: 5px 9px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.badgeSuper {
+  background: var(--admin-super-bg);
+  color: var(--admin-super-text);
+}
+
+.badgeRegional {
+  background: var(--admin-regional-bg);
+  color: var(--admin-regional-text);
+}
+
+.badgeActive {
+  background: var(--admin-active-bg);
+  color: var(--admin-active-text);
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: 20px 12px 40px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .rankingButton {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .stateCard {
+    margin: 40px auto;
+    padding: 21px 17px;
+  }
+}

@@ -1,0 +1,272 @@
+.cardWrapper {
+  cursor: pointer;
+  transition: all .25s ease;
+}
+
+.cardWrapper:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.card {
+  border: 1px solid var(--surface-glass-border);
+  border-radius: 12px;
+  overflow: hidden;
+
+  background:var(--surface-glass);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+
+  transition: .25s;
+
+  box-shadow: var(--shadow-sm);
+}
+
+.imageContainer {
+  position: relative;
+}
+
+.badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+
+  padding: 5px 10px;
+
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  color: #fff;
+
+  z-index: 3;
+}
+
+.auctionBadge {
+  background: #ff9800;
+}
+
+.productBadge {
+  background: #43a047;
+}
+
+.content {
+  padding: 12px;
+}
+
+.title {
+  min-height: 40px;
+
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+
+  color: var(--text);
+}
+
+.storeName {
+  margin-top: 4px;
+
+  font-size: 12px;
+
+  color: var(--text-soft);
+}
+
+.priceRow {
+  margin-top: 8px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  gap: 12px;
+}
+
+.priceInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.label {
+  font-size: 12px;
+  color: var(--text-soft);
+}
+
+.price {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.normalPrice {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.viewers {
+  margin-top: 6px;
+
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  font-size: 12px;
+
+  color: var(--text-soft);
+}
+
+.footer {
+  margin-top: 8px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  font-size: 12px;
+}
+
+.status {
+  font-weight: 700;
+}
+
+.statusOpen {
+  color: #ff9800;
+}
+
+.statusClosed {
+  color: #d32f2f;
+}
+
+.discountPriceBox {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  margin-top: 8px;
+}
+
+.discountOldPriceRow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.discountOldPrice {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-soft);
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+  opacity: 0.8;
+}
+
+.discountedPrice {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.15;
+}
+
+.discountBadge {
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  background: #4ad32f;
+  padding: 3px 6px;
+  border-radius: 5px;
+  white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+
+  .content {
+    padding: 10px;
+  }
+
+  .price {
+    font-size: 16px;
+  }
+
+  .normalPrice {
+    font-size: 15px;
+  }
+
+  .discountedPrice {
+    font-size: 18px;
+  }
+
+  .discountOldPrice {
+    font-size: 12px;
+  }
+
+  .discountBadge {
+    font-size: 9px;
+    padding: 2px 5px;
+  }
+
+  .badge {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+}
+
+.soldOutImage img {
+  opacity: 0.6;
+}
+
+.soldOutWrap {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.soldOutBtn {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 2px solid var(--surface);
+  border-radius: 50%;
+  background: #e5484d;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+
+.soldOutBtn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.soldOutMsg {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: var(--shadow-md);
+  animation: soldOutIn 0.18s ease;
+}
+
+@keyframes soldOutIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

@@ -1,0 +1,177 @@
+.handle{
+
+    position:fixed;
+
+    right:0;
+
+    width:26px;
+    height:78px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    border:none;
+
+    border-radius:14px 0 0 14px;
+
+    background:
+linear-gradient(
+180deg,
+rgba(249,115,22,.96),
+rgba(234,88,12,.96)
+);
+
+backdrop-filter: blur(14px);
+
+border:1px solid rgba(255,255,255,.15);
+
+    color:white;
+
+    font-size:18px;
+    font-weight:700;
+
+    cursor:pointer;
+
+    z-index:3000;
+
+    user-select:none;
+    touch-action:none;
+
+    box-shadow:
+        -4px 8px 20px rgba(0,0,0,.18),
+        inset 1px 0 rgba(255,255,255,.15);
+
+    transition:
+        background .25s,
+        width .25s,
+        transform .25s,
+        box-shadow .25s;
+}
+
+/* Hover */
+
+.handle:hover{
+
+    width:34px;
+
+transform:translateX(-3px);
+
+filter:brightness(1.05);
+
+    background:var(--primary-hover);
+
+    box-shadow:
+        -8px 12px 28px rgba(0,0,0,.25);
+
+}
+
+/* Enquanto clica */
+
+.handle:active{
+
+    transform:
+translateX(-2px)
+scale(.97);
+
+}
+
+/* Barrinhas decorativas */
+
+.handle::before{
+
+    content:"";
+
+    width:4px;
+    height:28px;
+
+    border-radius:999px;
+
+    background:
+rgba(255,255,255,.75);
+
+box-shadow:
+8px 0 rgba(255,255,255,.45),
+-8px 0 rgba(255,255,255,.45);
+
+}
+
+/* Esconde o símbolo textual,
+   porque usamos só as barrinhas */
+
+.handle{
+
+    color:transparent;
+
+}
+
+/* Animação quando aparece */
+
+@keyframes handleAppear{
+
+    from{
+
+        transform:translateX(100%);
+
+        opacity:0;
+
+    }
+
+    to{
+
+        transform:translateX(0);
+
+        opacity:1;
+
+    }
+
+}
+
+.handle{
+
+    animation:handleAppear .35s ease;
+
+}
+
+/* Mobile */
+
+@media (max-width:850px){
+
+    .handle{
+
+        width:24px;
+        height:72px;
+
+    }
+
+    .handle:hover{
+
+        width:28px;
+
+    }
+
+}
+
+
+.cardContent{
+
+animation:
+fadeInUp .25s ease;
+}
+
+@keyframes fadeInUp{
+
+from{
+
+opacity:0;
+transform:translateY(8px);
+
+}
+
+to{
+
+opacity:1;
+transform:none;
+
+}
+}

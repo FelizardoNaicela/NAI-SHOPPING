@@ -1,0 +1,40 @@
+
+.notification-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notification-main {
+  display: flex;
+  gap: 12px;
+  flex: 1;
+}
+
+.notification-delete {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  opacity: 0.6;
+}
+
+.notification-delete:hover {
+  opacity: 1;
+  color: #dc2626;
+}
+
+
+.notification-item.removing {
+  opacity: 0;
+  transform: translateX(-5px);
+}
+
+html,
+body{
+
+    background:var(--background);
+
+    color:var(--text);
+
+}

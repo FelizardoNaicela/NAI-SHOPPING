@@ -1,0 +1,26 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+.basic { --c: color-mix(in srgb, #3b82f6 75%, var(--text)); }
+.premium { --c: color-mix(in srgb, #d4a017 75%, var(--text)); }
+
+.icon {
+  color: var(--c);
+  fill: color-mix(in srgb, var(--c) 20%, transparent);
+}
+
+.pill {
+  padding: 3px 10px 3px 6px;
+  border: 1px solid color-mix(in srgb, var(--c) 35%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--c) 14%, transparent);
+  color: var(--c);
+  font-size: 11px;
+  font-weight: 800;
+}

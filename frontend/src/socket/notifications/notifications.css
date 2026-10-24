@@ -1,0 +1,661 @@
+@keyframes bellRing {
+  0% { transform: rotate(0deg); }
+  15% { transform: rotate(15deg); }
+  30% { transform: rotate(-15deg); }
+  45% { transform: rotate(10deg); }
+  60% { transform: rotate(-10deg); }
+  75% { transform: rotate(5deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.bell-animate {
+  animation: bellRing 0.8s ease-in-out;
+  transform-origin: top center;
+}
+
+@keyframes badgePulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.6);
+  }
+  70% {
+    transform: scale(1.15);
+    box-shadow: 0 0 0 10px rgba(255, 0, 0, 0);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.badge-pulse {
+  animation: badgePulse 0.9s ease-out;
+}
+
+@keyframes dropdownEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.notification-dropdown {
+  animation: dropdownEnter 0.2s ease-out;
+}
+
+.notification-item {
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.15s ease,
+    opacity 0.2s ease;
+}
+
+
+.notification-item:hover {
+  background-color: #dbe9ff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+.notification-delete {
+  opacity: 0.6;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
+}
+
+.notification-delete:hover {
+  opacity: 1;
+  transform: scale(1.15);
+}
+
+@keyframes skeletonPulse {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.notification-skeleton {
+  display: flex;
+  gap: 12px;
+  padding: 10px;
+  margin-top: 8px;
+  border-radius: 6px;
+  background: #f1f5f9;
+}
+
+.skeleton-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(
+    90deg,
+    #e5e7eb 25%,
+    #f3f4f6 37%,
+    #e5e7eb 63%
+  );
+  background-size: 400% 100%;
+  animation: skeletonPulse 1.4s ease infinite;
+}
+
+.skeleton-content {
+  flex: 1;
+}
+
+.skeleton-line {
+  height: 10px;
+  margin-top: 6px;
+  border-radius: 4px;
+  background: linear-gradient(
+    90deg,
+    #e5e7eb 25%,
+    #f3f4f6 37%,
+    #e5e7eb 63%
+  );
+  background-size: 400% 100%;
+  animation: skeletonPulse 1.4s ease infinite;
+}
+
+.skeleton-line.short {
+  width: 60%;
+}
+
+.undo-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1f2937;
+  color: white;
+  padding: 10px 14px;
+  border-radius: 6px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+  z-index: 2000;
+}
+
+.undo-toast button {
+  background: none;
+  border: none;
+  color: #60a5fa;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.undo-toast button:hover {
+  text-decoration: underline;
+}
+
+
+/* =========================================================
+   GRUPO DE NOTIFICAÇÕES
+========================================================= */
+
+.notification-group-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 72px;
+
+  padding: 10px 12px;
+
+  box-sizing: border-box;
+
+  border-bottom: 1px solid var(--border);
+
+  background: transparent;
+
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease;
+}
+
+
+/* =========================================================
+   CORPO
+========================================================= */
+
+.notification-group-main {
+  display: flex;
+  align-items: center;
+
+  flex: 1;
+  min-width: 0;
+
+  gap: 12px;
+
+  cursor: pointer;
+
+  border-radius: 10px;
+
+  padding: 6px;
+
+  outline: none;
+}
+
+.notification-group-main:hover {
+  background: var(--surface-hover);
+}
+
+.notification-group-main:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--primary);
+}
+
+
+/* =========================================================
+   ÍCONE
+========================================================= */
+
+.notification-group-icon {
+  width: 40px;
+  height: 40px;
+
+  min-width: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: var(--surface-hover);
+
+  color: var(--text);
+
+  border: 1px solid var(--border);
+
+  box-sizing: border-box;
+}
+
+
+/* =========================================================
+   CONTEÚDO
+========================================================= */
+
+.notification-group-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.notification-group-title {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  min-width: 0;
+}
+
+.notification-group-title strong {
+  font-size: 14px;
+  line-height: 1.35;
+
+  color: var(--text);
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notification-group-content p {
+  margin: 4px 0 0;
+
+  font-size: 12px;
+  line-height: 1.4;
+
+  color: var(--text-soft);
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+}
+
+
+/* =========================================================
+   CONTADOR
+========================================================= */
+
+.notification-count {
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  min-width: 22px;
+  height: 22px;
+
+  padding: 0 7px;
+
+  border-radius: 999px;
+
+  background: var(--primary);
+
+  color: #fff;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  box-sizing: border-box;
+}
+
+
+/* =========================================================
+   AÇÕES
+========================================================= */
+
+.notification-group-actions {
+  display: flex;
+  align-items: center;
+
+  gap: 4px;
+
+  margin-left: 8px;
+
+  flex-shrink: 0;
+}
+
+.notification-action-button {
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid transparent;
+
+  border-radius: 8px;
+
+  background: transparent;
+
+  color: var(--text-soft);
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.notification-action-button:hover {
+  background: var(--surface-hover);
+
+  color: var(--text);
+
+  border-color: var(--border);
+}
+
+.notification-action-button:active {
+  transform: scale(0.94);
+}
+
+
+/* =========================================================
+   APAGAR
+========================================================= */
+
+.notification-delete-button:hover {
+  color: var(--danger);
+
+  border-color: var(--border);
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+
+  .notification-group-item {
+    min-height: 68px;
+
+    padding: 8px 6px;
+  }
+
+  .notification-group-main {
+    gap: 9px;
+  }
+
+  .notification-group-icon {
+    width: 36px;
+    height: 36px;
+
+    min-width: 36px;
+  }
+
+  .notification-group-title strong {
+    font-size: 13px;
+  }
+
+  .notification-group-content p {
+    font-size: 11px;
+  }
+
+  .notification-group-actions {
+    margin-left: 4px;
+  }
+
+  .notification-action-button {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+/* =========================================================
+   NOTIFICAÇÃO INDIVIDUAL
+========================================================= */
+
+.notification-item {
+  display: flex;
+  align-items: center;
+
+  width: 100%;
+  min-height: 64px;
+
+  padding: 8px 10px;
+
+  box-sizing: border-box;
+
+  gap: 11px;
+
+  border-bottom: 1px solid var(--border);
+
+  background: transparent;
+
+  transition:
+    background-color 0.18s ease,
+    opacity 0.18s ease;
+}
+
+
+/* =========================================================
+   ESTADO
+========================================================= */
+
+.notification-item.unread {
+  opacity: 1;
+}
+
+.notification-item.read {
+  opacity: 0.72;
+}
+
+
+/* =========================================================
+   HOVER
+========================================================= */
+
+.notification-item:hover {
+  background: var(--surface-hover);
+}
+
+
+/* =========================================================
+   ÍCONE
+========================================================= */
+
+.notification-item .notification-icon {
+  width: 36px;
+  height: 36px;
+
+  min-width: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: var(--surface-hover);
+
+  color: var(--text);
+
+  border: 1px solid var(--border);
+
+  box-sizing: border-box;
+
+  flex-shrink: 0;
+}
+
+
+/* =========================================================
+   CONTEÚDO
+========================================================= */
+
+.notification-item .notification-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-single-header {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  min-width: 0;
+}
+
+.notification-single-header strong {
+  font-size: 13px;
+  line-height: 1.3;
+
+  color: var(--text);
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notification-item .notification-content p {
+  margin: 3px 0 2px;
+
+  font-size: 12px;
+  line-height: 1.35;
+
+  color: var(--text-soft);
+
+  overflow: hidden;
+
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+}
+
+.notification-item .notification-content small {
+  display: block;
+
+  font-size: 10px;
+
+  color: var(--text-soft);
+
+  opacity: 0.8;
+}
+
+
+/* =========================================================
+   PONTO DE NÃO LIDA
+========================================================= */
+
+.notification-unread-dot {
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+
+  background: var(--primary);
+
+  flex-shrink: 0;
+}
+
+
+/* =========================================================
+   BOTÃO APAGAR
+========================================================= */
+
+.notification-delete {
+  width: 32px;
+  height: 32px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  padding: 0;
+
+  border: 1px solid transparent;
+
+  border-radius: 8px;
+
+  background: transparent;
+
+  color: var(--text-soft);
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.notification-delete:hover {
+  color: var(--danger);
+
+  background: var(--surface-hover);
+
+  border-color: var(--border);
+}
+
+.notification-delete:active {
+  transform: scale(0.93);
+}
+
+
+/* =========================================================
+   FOCO
+========================================================= */
+
+.notification-item:focus-visible {
+  outline: none;
+
+  box-shadow:
+    inset 0 0 0 2px var(--primary);
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+
+  .notification-item {
+    min-height: 58px;
+
+    padding: 7px 6px;
+
+    gap: 9px;
+  }
+
+  .notification-item .notification-icon {
+    width: 34px;
+    height: 34px;
+
+    min-width: 34px;
+  }
+
+  .notification-single-header strong {
+    font-size: 12px;
+  }
+
+  .notification-item .notification-content p {
+    font-size: 11px;
+  }
+
+  .notification-item .notification-content small {
+    font-size: 9px;
+  }
+
+  .notification-delete {
+    width: 30px;
+    height: 30px;
+  }
+}

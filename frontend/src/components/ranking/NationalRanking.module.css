@@ -1,0 +1,1196 @@
+.ranking {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  width: 100%;
+}
+
+/* =========================================
+   BOTÃO / CONVITE
+========================================= */
+
+.infoButton {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+
+  padding: 11px 13px;
+
+  border: 1px solid rgba(139, 92, 246, 0.35);
+  border-radius: 11px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(139, 92, 246, 0.14),
+      rgba(139, 92, 246, 0.05)
+    );
+
+  color: var(--text);
+
+  font-size: 12px;
+  font-weight: 800;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.infoButton:hover {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(139, 92, 246, 0.2),
+      rgba(139, 92, 246, 0.08)
+    );
+
+  border-color:
+    rgba(139, 92, 246, 0.55);
+
+  box-shadow:
+    0 6px 18px
+    rgba(139, 92, 246, 0.12);
+}
+
+.infoButton:active {
+  transform: scale(0.985);
+}
+
+.infoArrow {
+  flex-shrink: 0;
+
+  font-size: 17px;
+  font-weight: 900;
+
+  color: var(--primary);
+}
+
+/* =========================================
+   POSIÇÃO
+========================================= */
+
+.position {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  min-height: 58px;
+
+  padding: 8px 9px;
+
+  border: 1px solid
+    rgba(255, 255, 255, 0.08);
+
+  border-radius: 11px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.035),
+      rgba(255, 255, 255, 0.015)
+    );
+
+  min-width: 0;
+
+  overflow: hidden;
+
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.position::before {
+  content: "";
+
+  position: absolute;
+
+  left: 0;
+  top: 0;
+  bottom: 0;
+
+  width: 3px;
+
+  background:
+    var(--primary);
+
+  opacity: 0.35;
+}
+
+.position:hover {
+  transform: translateY(-1px);
+
+  border-color:
+    rgba(139, 92, 246, 0.28);
+
+  box-shadow:
+    0 7px 20px
+    rgba(0, 0, 0, 0.16);
+}
+
+/* =========================================
+   TOP 3
+========================================= */
+
+.position1 {
+  min-height: 68px;
+
+  border-color:
+    rgba(234, 179, 8, 0.38);
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(234, 179, 8, 0.13),
+      rgba(234, 179, 8, 0.035)
+    );
+
+  box-shadow:
+    0 7px 25px
+    rgba(234, 179, 8, 0.08);
+}
+
+.position1::before {
+  width: 5px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #ffe58a,
+      #d4a017,
+      #a66a00
+    );
+
+  opacity: 1;
+}
+
+.position2 {
+  min-height: 64px;
+
+  border-color:
+    rgba(192, 192, 192, 0.35);
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(192, 192, 192, 0.1),
+      rgba(192, 192, 192, 0.025)
+    );
+}
+
+.position2::before {
+  width: 4px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #f5f5f5,
+      #9ca3af
+    );
+
+  opacity: 0.9;
+}
+
+.position3 {
+  min-height: 62px;
+
+  border-color:
+    rgba(180, 83, 9, 0.35);
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(180, 83, 9, 0.11),
+      rgba(180, 83, 9, 0.025)
+    );
+}
+
+.position3::before {
+  width: 4px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #f4c7a1,
+      #b87333
+    );
+
+  opacity: 0.9;
+}
+
+/* =========================================
+   NÚMERO
+========================================= */
+
+.positionNumber {
+  position: relative;
+
+  width: 43px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+
+  font-size: 14px;
+  font-weight: 900;
+
+  color: var(--text);
+
+  z-index: 1;
+}
+
+.position1 .positionNumber {
+  font-size: 22px;
+
+  filter:
+    drop-shadow(
+      0 2px 7px
+      rgba(234, 179, 8, 0.35)
+    );
+}
+
+.position2 .positionNumber {
+  font-size: 20px;
+}
+
+.position3 .positionNumber {
+  font-size: 19px;
+}
+
+/* =========================================
+   LOJA
+========================================= */
+
+.store {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+
+  min-width: 0;
+
+  flex: 1;
+
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+
+  color: inherit;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  overflow: hidden;
+}
+
+.store:hover .storeName {
+  color: var(--primary);
+}
+
+.store:focus-visible {
+  outline:
+    2px solid var(--primary);
+
+  outline-offset: 3px;
+
+  border-radius: 8px;
+}
+
+/* =========================================
+   AVATAR WRAPPER
+========================================= */
+
+.avatarWrapper {
+  position: relative;
+
+  width: 37px;
+  height: 37px;
+
+  flex-shrink: 0;
+}
+
+/* =========================================
+   AVATAR
+========================================= */
+
+.avatar,
+.avatarPlaceholder {
+  width: 37px;
+  height: 37px;
+
+  border-radius: 50%;
+
+  object-fit: cover;
+
+  border:
+    2px solid
+    var(--surface);
+}
+
+.avatar {
+  display: block;
+
+  background:
+    var(--surface-2);
+
+  box-shadow:
+    0 2px 8px
+    rgba(0, 0, 0, 0.18);
+}
+
+.avatarPlaceholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(139, 92, 246, 0.18),
+      rgba(139, 92, 246, 0.05)
+    );
+
+  font-size: 17px;
+}
+
+/* =========================================
+   VERIFICAÇÃO BÁSICA
+========================================= */
+
+.basicVerification {
+  position: absolute;
+
+  right: -3px;
+  bottom: -2px;
+
+  width: 17px;
+  height: 17px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background:
+    linear-gradient(
+      145deg,
+      #60a5fa,
+      #2563eb
+    );
+
+  color: #fff;
+
+  font-size: 9px;
+  font-weight: 900;
+
+  border:
+    2px solid
+    var(--surface);
+
+  box-shadow:
+    0 2px 7px
+    rgba(37, 99, 235, 0.35);
+
+  z-index: 3;
+}
+
+/* =========================================
+   VERIFICAÇÃO PREMIUM
+========================================= */
+
+.premiumVerification {
+  position: absolute;
+
+  right: -4px;
+  bottom: -3px;
+
+  width: 19px;
+  height: 19px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffe58a,
+      #d4a017 55%,
+      #a66a00
+    );
+
+  color: #fff8dc;
+
+  font-size: 10px;
+  font-weight: 900;
+
+  border:
+    2px solid
+    var(--surface);
+
+  box-shadow:
+    0 2px 8px
+    rgba(212, 160, 23, 0.48);
+
+  text-shadow:
+    0 1px 2px
+    rgba(110, 70, 0, 0.45);
+
+  z-index: 3;
+
+  animation:
+    premiumRankingGlow 3s
+    ease-in-out infinite;
+}
+
+@keyframes premiumRankingGlow {
+  0%,
+  100% {
+    transform: scale(1);
+
+    filter:
+      brightness(1);
+  }
+
+  50% {
+    transform: scale(1.12);
+
+    filter:
+      brightness(1.15);
+  }
+}
+
+/* =========================================
+   INFORMAÇÕES DA LOJA
+========================================= */
+
+.storeInfo {
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+
+  flex: 1;
+}
+
+.storeName {
+  overflow: hidden;
+
+  font-size: 13px;
+  font-weight: 800;
+
+  color: var(--text);
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  transition:
+    color 0.18s ease;
+}
+
+.premiumText,
+.basicText {
+  width: fit-content;
+
+  margin-top: 2px;
+
+  font-size: 9px;
+  font-weight: 700;
+
+  white-space: nowrap;
+}
+
+.premiumText {
+  color: #d4a017;
+}
+
+.basicText {
+  color: #3b82f6;
+}
+
+/* =========================================
+   POSIÇÃO VAZIA
+========================================= */
+
+.empty {
+  display: flex;
+  align-items: center;
+
+  min-width: 0;
+
+  flex: 1;
+
+  color: var(--text-secondary);
+
+  font-size: 12px;
+
+  opacity: 0.7;
+}
+
+/* =========================================
+   BOTÃO DO LEILÃO
+========================================= */
+
+.auctionButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 4px;
+
+  flex-shrink: 0;
+
+  border:
+    1px solid
+    rgba(139, 92, 246, 0.3);
+
+  border-radius: 8px;
+
+  padding: 6px 8px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(139, 92, 246, 0.12),
+      rgba(139, 92, 246, 0.04)
+    );
+
+  color: var(--text);
+
+  font-size: 10px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.auctionButton:hover {
+  background:
+    rgba(139, 92, 246, 0.2);
+
+  border-color:
+    rgba(139, 92, 246, 0.5);
+
+  transform: translateY(-1px);
+}
+
+.auctionButton:active {
+  transform: scale(0.97);
+}
+
+.auctionIcon {
+  font-size: 12px;
+}
+
+.auctionText {
+  white-space: nowrap;
+}
+
+/* =========================================
+   LOADING
+========================================= */
+
+.loading {
+  padding: 14px;
+
+  text-align: center;
+
+  color: var(--text-secondary);
+
+  font-size: 12px;
+}
+
+/* =========================================
+   ERRO
+========================================= */
+
+.error {
+  padding: 8px 10px;
+
+  border-radius: 8px;
+
+  background:
+    rgba(239, 68, 68, 0.08);
+
+  border:
+    1px solid
+    rgba(239, 68, 68, 0.18);
+
+  color: var(--text-secondary);
+
+  font-size: 11px;
+
+  text-align: center;
+}
+
+/* =========================================
+   OVERLAY DO MODAL
+========================================= */
+
+.modalOverlay {
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 1000;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+
+  background:
+    rgba(0, 0, 0, 0.65);
+
+  backdrop-filter:
+    blur(4px);
+}
+
+/* =========================================
+   MODAL
+========================================= */
+
+.modal {
+  width: min(620px, 100%);
+
+  max-height: 90vh;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  border:
+    1px solid
+    var(--border);
+
+  border-radius: 16px;
+
+  background:
+    var(--surface);
+
+  box-shadow:
+    0 20px 60px
+    rgba(0, 0, 0, 0.35);
+}
+
+/* =========================================
+   CABEÇALHO DO MODAL
+========================================= */
+
+.modalHeader {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 16px;
+
+  padding: 16px 18px;
+
+  border-bottom:
+    1px solid
+    var(--border);
+
+  background:
+    var(--surface-soft);
+}
+
+.modalHeader h3 {
+  margin: 0;
+
+  color: var(--text);
+
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.modalHeader p {
+  margin: 3px 0 0;
+
+  color: var(--text-secondary);
+
+  font-size: 12px;
+}
+
+/* =========================================
+   FECHAR MODAL
+========================================= */
+
+.modalClose {
+  width: 32px;
+  height: 32px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 0;
+
+  border-radius: 8px;
+
+  background:
+    rgba(255, 255, 255, 0.06);
+
+  color: var(--text-secondary);
+
+  font-size: 22px;
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
+}
+
+.modalClose:hover {
+  background:
+    rgba(255, 255, 255, 0.1);
+
+  color: var(--text);
+}
+
+/* =========================================
+   CONTEÚDO DO MODAL
+========================================= */
+
+.modalContent {
+  overflow-y: auto;
+
+  padding: 18px;
+}
+
+.modalContent > p {
+  margin: 0 0 12px;
+
+  color: var(--text-soft);
+
+  font-size: 14px;
+
+  line-height: 1.55;
+}
+
+.modalContent strong {
+  color: var(--text);
+}
+
+/* =========================================
+   SEÇÃO DO MODAL
+========================================= */
+
+.modalSection {
+  margin-top: 20px;
+}
+
+.modalSection h4 {
+  margin: 0 0 10px;
+
+  color: var(--text);
+
+  font-size: 14px;
+  font-weight: 800;
+}
+
+/* =========================================
+   PASSOS
+========================================= */
+
+.modalSteps {
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+}
+
+.modalStep {
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 9px 10px;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.06);
+
+  border-radius: 9px;
+
+  background:
+    rgba(255, 255, 255, 0.025);
+}
+
+.modalStep > span {
+  width: 24px;
+  height: 24px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background:
+    rgba(139, 92, 246, 0.15);
+
+  color: var(--text);
+
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.modalStep p {
+  margin: 0;
+
+  color: var(--text-secondary);
+
+  font-size: 12px;
+
+  line-height: 1.4;
+}
+
+/* =========================================
+   LISTA DE LEILÕES
+========================================= */
+
+.auctionList {
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+}
+
+/* =========================================
+   LINHA DE LEILÃO
+========================================= */
+
+.auctionRow {
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 9px 10px;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.07);
+
+  border-radius: 9px;
+
+  background:
+    rgba(255, 255, 255, 0.025);
+
+  min-width: 0;
+}
+
+/* =========================================
+   POSIÇÃO DO LEILÃO
+========================================= */
+
+.auctionRowPosition {
+  width: 36px;
+
+  flex-shrink: 0;
+
+  text-align: center;
+
+  color: var(--text);
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+/* =========================================
+   INFO DO LEILÃO
+========================================= */
+
+.auctionRowInfo {
+  display: flex;
+  flex-direction: column;
+
+  gap: 2px;
+
+  min-width: 0;
+
+  flex: 1;
+}
+
+.auctionRowInfo strong {
+  overflow: hidden;
+
+  color: var(--text);
+
+  font-size: 12px;
+  font-weight: 800;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.auctionRowInfo span {
+  color: var(--text-secondary);
+
+  font-size: 10px;
+
+  line-height: 1.35;
+}
+
+/* =========================================
+   LEILÃO NÃO CONFIGURADO
+========================================= */
+
+.auctionUnavailable {
+  min-width: 0;
+
+  flex: 1;
+
+  color: var(--text-secondary);
+
+  font-size: 11px;
+
+  opacity: 0.7;
+}
+
+/* =========================================
+   BOTÃO DO LEILÃO NO MODAL
+========================================= */
+
+.modalAuctionButton {
+  flex-shrink: 0;
+
+  padding: 6px 8px;
+
+  border:
+    1px solid
+    rgba(139, 92, 246, 0.25);
+
+  border-radius: 7px;
+
+  background:
+    rgba(139, 92, 246, 0.08);
+
+  color: var(--text);
+
+  font-size: 10px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  white-space: nowrap;
+
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.modalAuctionButton:hover {
+  background:
+    rgba(139, 92, 246, 0.16);
+
+  border-color:
+    rgba(139, 92, 246, 0.4);
+}
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 900px) {
+  .position {
+    min-height: 54px;
+  }
+
+  .position1 {
+    min-height: 62px;
+  }
+
+  .position2 {
+    min-height: 59px;
+  }
+
+  .position3 {
+    min-height: 57px;
+  }
+
+  .positionNumber {
+    width: 37px;
+  }
+
+  .storeName {
+    font-size: 12px;
+  }
+
+  .auctionButton {
+    padding: 5px 6px;
+  }
+
+  .auctionText {
+    display: none;
+  }
+
+  .modalOverlay {
+    padding: 12px;
+  }
+
+  .modal {
+    max-height: 94vh;
+
+    border-radius: 14px;
+  }
+
+  .modalHeader {
+    padding: 14px;
+  }
+
+  .modalContent {
+    padding: 14px;
+  }
+
+  .auctionRow {
+    align-items: flex-start;
+  }
+
+  .modalAuctionButton {
+    padding: 6px 7px;
+  }
+}
+
+@media (max-width: 500px) {
+  .position {
+    gap: 7px;
+
+    padding-left: 7px;
+    padding-right: 7px;
+  }
+
+  .positionNumber {
+    width: 32px;
+
+    font-size: 12px;
+  }
+
+  .position1 .positionNumber {
+    font-size: 19px;
+  }
+
+  .position2 .positionNumber {
+    font-size: 18px;
+  }
+
+  .position3 .positionNumber {
+    font-size: 17px;
+  }
+
+  .avatarWrapper,
+  .avatar,
+  .avatarPlaceholder {
+    width: 34px;
+    height: 34px;
+  }
+
+  .basicVerification {
+    width: 16px;
+    height: 16px;
+
+    font-size: 8px;
+  }
+
+  .premiumVerification {
+    width: 18px;
+    height: 18px;
+
+    font-size: 9px;
+  }
+
+  .premiumText,
+  .basicText {
+    display: none;
+  }
+
+  .storeName {
+    font-size: 11px;
+  }
+}
+
+.rankingActions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.auctionsListButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  padding: 12px 16px;
+
+  border: 1px solid var(--border);
+  border-radius: 12px;
+
+  background: var(--surface);
+  color: var(--text);
+
+  font-size: 14px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.auctionsListButton:hover {
+  transform: translateY(-1px);
+  border-color: var(--primary);
+  background: var(--surface-secondary);
+}
+
+.auctionsListButton:active {
+  transform: translateY(0);
+}

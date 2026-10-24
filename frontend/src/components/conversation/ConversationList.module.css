@@ -1,0 +1,355 @@
+.sidebar {
+    width: 320px;
+
+    display: flex;
+    flex-direction: column;
+
+    background: transparent;
+
+    border-right: 1px solid var(--border);
+
+    backdrop-filter: blur(14px);
+
+    height: 100%;
+}
+
+/* ===========================
+   MODO PESSOAL / LOJA
+=========================== */
+
+.modeSwitcher {
+    display: flex;
+
+    border-bottom: 1px solid var(--border);
+
+    background: var(--surface-glass);
+
+    backdrop-filter: blur(12px);
+}
+
+.modeSwitcher button {
+    flex: 1;
+
+    border: none;
+
+    background: transparent;
+
+    padding: 14px;
+
+    cursor: pointer;
+
+    color: var(--text-soft);
+
+    font-weight: 600;
+
+    transition:
+        background .25s ease,
+        color .25s ease;
+}
+
+.modeSwitcher button:hover {
+    background: var(--surface-hover);
+}
+
+.activeMode {
+    color: var(--primary) !important;
+
+    border-bottom: 3px solid var(--primary);
+
+    background: rgba(249, 115, 22, .06) !important;
+}
+
+/* ===========================
+   LISTA
+=========================== */
+
+.list {
+    overflow-y: auto;
+
+    flex: 1;
+
+    padding: 8px;
+}
+
+/* ===========================
+   CONVERSA
+=========================== */
+
+.item {
+    width: 100%;
+
+    display: flex;
+
+    gap: 14px;
+
+    padding: 14px;
+
+    border: 1px solid transparent;
+
+    background: rgba(11, 19, 36, .28);
+
+    color: var(--text);
+
+    border-radius: 14px;
+
+    transition:
+        background .25s ease,
+        transform .2s ease,
+        box-shadow .2s ease,
+        border-color .25s ease;
+
+    cursor: pointer;
+
+    text-align: left;
+
+    margin-bottom: 6px;
+
+    animation: fadeIn .25s ease;
+
+    backdrop-filter: blur(8px);
+}
+
+.item:hover {
+    background: rgba(11, 19, 36, .48);
+
+    border-color: rgba(255, 255, 255, .08);
+
+    transform: translateX(3px);
+
+    box-shadow:
+        inset 0 0 0 1px rgba(249, 115, 22, .08);
+}
+
+/* ===========================
+   CONVERSA SELECIONADA
+=========================== */
+
+.selected {
+    background: rgba(249, 115, 22, .14);
+
+    border-color: rgba(249, 115, 22, .35);
+
+    transform: translateX(3px);
+
+    box-shadow:
+        inset 0 0 0 1px rgba(249, 115, 22, .08);
+}
+
+.selected:hover {
+    background: rgba(249, 115, 22, .18);
+}
+
+/* ===========================
+   AVATAR
+=========================== */
+
+.avatarWrapper {
+    position: relative;
+
+    flex-shrink: 0;
+}
+
+.avatar {
+    width: 52px;
+    height: 52px;
+
+    border-radius: 50%;
+
+    object-fit: cover;
+
+    background: var(--surface);
+
+    transition:
+        transform .25s,
+        box-shadow .25s,
+        border .25s;
+}
+
+.item:hover .avatar {
+    transform: scale(1.04);
+}
+
+/* ===========================
+   NÃO LIDA
+=========================== */
+
+.unread .avatar {
+    border: 3px solid var(--primary);
+
+    box-shadow:
+        0 0 0 3px rgba(249, 115, 22, .15);
+}
+
+.unread .lastMessage {
+    color: var(--text);
+
+    font-weight: 600;
+}
+
+/* ===========================
+   ONLINE
+=========================== */
+
+.online {
+    position: absolute;
+
+    right: 2px;
+    bottom: 2px;
+
+    width: 12px;
+    height: 12px;
+
+    border-radius: 50%;
+
+    background: var(--success);
+
+    border: 2px solid var(--surface);
+}
+
+/* ===========================
+   INFORMAÇÕES
+=========================== */
+
+.info {
+    flex: 1;
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+
+    min-width: 0;
+}
+
+.topRow {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    gap: 12px;
+}
+
+.name {
+    font-weight: 700;
+
+    color: var(--text);
+
+    font-size: 15px;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+}
+
+.lastMessage {
+    margin-top: 5px;
+
+    color: var(--text-soft);
+
+    font-size: 13px;
+
+    line-height: 1.3;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+}
+
+.time {
+    font-size: 11px;
+
+    color: var(--text-soft);
+
+    white-space: nowrap;
+}
+
+/* ===========================
+   BADGE
+=========================== */
+
+.badge {
+    min-width: 22px;
+    height: 22px;
+
+    border-radius: 999px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    background: linear-gradient(
+        180deg,
+        #ff5a5a,
+        #ef4444
+    );
+
+    color: white;
+
+    font-size: 12px;
+
+    font-weight: bold;
+
+    padding: 0 6px;
+
+    box-shadow:
+        0 3px 8px rgba(239, 68, 68, .35);
+}
+
+/* ===========================
+   SCROLLBAR
+=========================== */
+
+.list::-webkit-scrollbar {
+    width: 7px;
+}
+
+.list::-webkit-scrollbar-thumb {
+    background: var(--border);
+
+    border-radius: 999px;
+}
+
+.list::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+}
+
+/* ===========================
+   ANIMAÇÃO
+=========================== */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+
+        transform: none;
+    }
+}
+
+/* ===========================
+   MOBILE
+=========================== */
+
+@media (max-width: 850px) {
+
+    .sidebar {
+        width: 100%;
+
+        border-right: none;
+    }
+
+}

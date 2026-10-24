@@ -1,0 +1,279 @@
+:root{
+
+    --primary:#f97316;
+    --primary-hover:#ea580c;
+
+    --background:#f5f5f5;
+
+    --surface:#ffffff;
+
+    --surface-soft:#ffffffdd;
+
+    --surface-glass:rgba(255,255,255,.72);
+
+    --border:#e5e5e5;
+
+    --text:#111827;
+
+    --text-soft:#6b7280;
+
+    --gray:#d4d4d4;
+
+    --success:#22c55e;
+
+    --danger:#ef4444;
+
+    --shadow:
+    0 10px 30px rgba(0,0,0,.08);
+
+    --shadow-sm:0 2px 6px rgba(0,0,0,.08);
+--shadow-md:0 8px 20px rgba(0,0,0,.12);
+--shadow-lg:0 15px 35px rgba(0,0,0,.18);
+
+--bubble-mine: rgba(220,248,198,.72);
+  --bubble-other: rgba(255,255,255,.72);
+  --bubble-highlight: rgba(255,243,191,.82);
+
+  --surface-glass: rgba(255,255,255,.40);
+  --surface-glass-border: rgba(255,255,255,.28);
+  --surface-hover: rgba(0, 0, 0, 0.05);
+
+}
+
+[data-theme="dark"] {
+
+    --background: #050b18;
+
+    --surface: #0b1324;
+
+    --surface-soft: rgba(17,27,46,.78);
+
+    --surface-glass: rgba(11,19,36,.100);
+
+    --border: #1d2a40;
+
+    --text: #f3f4f6;
+
+    --text-soft: #94a3b8;
+
+    --gray: #3a4658;
+
+    --shadow:
+        0 12px 30px rgba(0,0,0,.45);
+
+    --shadow-sm:
+        0 2px 6px rgba(0,0,0,.35);
+
+    --shadow-md:
+        0 8px 20px rgba(0,0,0,.45);
+
+    --shadow-lg:
+        0 18px 40px rgba(0,0,0,.60);
+
+    --bubble-mine:
+        rgba(47,92,59,.55);
+
+    --bubble-other:
+        rgba(36,40,49,.62);
+
+    --bubble-highlight:
+        rgba(173,128,28,.45);
+
+    --surface-glass-border:
+        rgba(255,255,255,.08);
+
+    --surface-hover:
+        rgba(255,255,255,.08);
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+
+    width: 100%;
+    min-height: 100%;
+
+    background: var(--background);
+    color: var(--text);
+
+    transition:
+        background .25s,
+        color .25s;
+}
+
+/* =====================================================
+   FUNDO ESTRELADO
+   ===================================================== */
+
+body {
+    position: relative;
+}
+
+/* camada das estrelas */
+body::before {
+    content: "";
+
+    position: fixed;
+    inset: 0;
+
+    pointer-events: none;
+
+    z-index: 0;
+
+    opacity: 0;
+
+    transition: opacity .3s ease;
+
+    background-image:
+
+        /* estrelas grandes */
+        radial-gradient(
+            circle at 8% 15%,
+            rgb(252, 227, 2) 0 3px,
+            transparent 4px
+        ),
+
+        radial-gradient(
+            circle at 18% 72%,
+            rgba(253, 215, 1, 0.95) 0 2.5px,
+            transparent 4px
+        ),
+
+        radial-gradient(
+            circle at 29% 38%,
+            rgb(253, 194, 2) 0 3px,
+            transparent 4px
+        ),
+
+        radial-gradient(
+            circle at 42% 82%,
+            rgba(255, 230, 1, 0.9) 0 2.5px,
+            transparent 4px
+        ),
+
+        radial-gradient(
+            circle at 54% 18%,
+            rgb(236, 253, 1) 0 3px,
+            transparent 4px
+        ),
+
+        radial-gradient(
+            circle at 67% 61%,
+            rgba(253, 215, 2, 0.95) 0 2.5px,
+            transparent 4px
+        ),
+
+        radial-gradient(
+            circle at 79% 27%,
+            rgb(255, 238, 1) 0 3px,
+            transparent 4px
+        ),
+
+        radial-gradient(
+            circle at 91% 76%,
+            rgba(248, 252, 2, 0.95) 0 2.5px,
+            transparent 4px
+        ),
+
+        /* estrelas médias */
+        radial-gradient(
+            circle at 14% 44%,
+            rgba(236, 253, 1, 0.8) 0 1.5px,
+            transparent 3px
+        ),
+
+        radial-gradient(
+            circle at 24% 17%,
+            rgba(253, 249, 2, 0.75) 0 1.5px,
+            transparent 3px
+        ),
+
+        radial-gradient(
+            circle at 36% 62%,
+            rgba(235, 252, 2, 0.8) 0 1.5px,
+            transparent 3px
+        ),
+
+        radial-gradient(
+            circle at 48% 46%,
+            rgba(248, 252, 1, 0.7) 0 1.5px,
+            transparent 3px
+        ),
+
+        radial-gradient(
+            circle at 61% 88%,
+            rgba(249, 253, 2, 0.75) 0 1.5px,
+            transparent 3px
+        ),
+
+        radial-gradient(
+            circle at 73% 13%,
+            rgba(251, 255, 2, 0.8) 0 1.5px,
+            transparent 3px
+        ),
+
+        radial-gradient(
+            circle at 84% 51%,
+            rgba(236, 253, 1, 0.75) 0 1.5px,
+            transparent 3px
+        ),
+
+        radial-gradient(
+            circle at 96% 31%,
+            rgba(238, 255, 2, 0.8) 0 1.5px,
+            transparent 3px
+        );
+
+    background-repeat: no-repeat;
+
+    background-size: 100% 100%;
+}
+
+[data-theme="dark"] body {
+    background-color: var(--background);
+
+    background-size:
+        180px 180px,
+        420px 420px;
+
+    background-position:
+        0 0,
+        0 0;
+
+    background-attachment: fixed;
+}
+
+/* ativa as estrelas somente no modo escuro */
+[data-theme="dark"] body::before {
+    opacity: 1;
+}
+
+/* =====================================================
+   CONTEÚDO DO SITE
+   ===================================================== */
+
+#root {
+    position: relative;
+    z-index: 1;
+
+    min-height: 100vh;
+
+    background: transparent;
+}
+
+*{
+    box-sizing:border-box;
+}
+
+@keyframes pickerAppear{
+    from{
+        opacity:0;
+        transform:translateY(10px) scale(.96);
+    }
+
+    to{
+        opacity:1;
+        transform:translateY(0) scale(1);
+    }
+}

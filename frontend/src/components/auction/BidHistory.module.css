@@ -1,0 +1,67 @@
+.container{
+
+    margin-top:30px;
+
+}
+
+.title{
+
+    margin-bottom:14px;
+
+    color:var(--text);
+
+}
+
+.bidItem{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding:12px 0;
+
+    border-bottom:1px solid var(--border);
+
+    color:var(--text);
+
+}
+
+.winner{
+
+    margin-left:8px;
+
+    color:var(--success);
+
+    font-weight:700;
+
+}
+
+.moreContainer{
+
+    margin-top:15px;
+
+}
+
+.moreButton{
+
+    border:none;
+
+    background:none;
+
+    color:var(--primary);
+
+    cursor:pointer;
+
+    font-weight:700;
+
+    transition:opacity .2s;
+
+}
+
+.moreButton:hover{
+
+    opacity:.75;
+
+}

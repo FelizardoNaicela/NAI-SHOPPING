@@ -1,0 +1,11 @@
+.countdown{
+
+    font-size:22px;
+
+    font-weight:700;
+
+    color:var(--danger);
+
+    transition:color .25s;
+
+}

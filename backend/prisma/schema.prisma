@@ -1,0 +1,1265 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  role      UserRole @default(USER)
+  createdAt DateTime @default(now())
+
+  countryCode  String
+  name         String?
+  passwordHash String
+  region       String?
+  updatedAt    DateTime @updatedAt
+  phone        String?
+
+  avatarUrl String?
+  bio       String? @db.VarChar(300)
+  username  String? @unique
+
+  lastSeen  DateTime?
+  deletedAt DateTime?
+
+  adminProfile AdminProfile?
+
+  legalInvestigatorProfile LegalInvestigatorProfile?
+
+  conversations                    Conversation[]
+  messages                         Message[]
+  messageReactions                 MessageReaction[]
+  notifications                    Notification[]
+  stores                           Store[]
+  followedStores                   StoreFollow[]
+  bids                             AuctionBid[]
+  wonAuctions                      Product[]                         @relation("AuctionWinner")
+  favoriteProducts                 ProductFavorite[]
+  nationalRankingAuctionBids       NationalRankingAuctionBid[]
+  sitePayments                     SitePayment[]
+  legalInvestigationAudits         LegalInvestigationAudit[]
+  legalInvestigationQueryAudits    LegalInvestigationQueryAudit[]
+  legalInvestigationDeniedAttempts LegalInvestigationDeniedAttempt[]
+  legalHoldsReleased               LegalHold[]                       @relation("LegalHoldReleasedBy")
+
+  legalEvidenceAccessAudits LegalEvidenceAccessAudit[]
+  legalHoldsCreated         LegalHold[]                @relation("LegalHoldCreatedBy")
+  legalEvidenceSent         LegalMessageEvidence[]     @relation("LegalEvidenceSender")
+  legalEvidenceReceived     LegalMessageEvidence[]     @relation("LegalEvidenceReceiver")
+
+  nationalRankingAssignments NationalRankingPosition[] @relation("NationalRankingAssignments")
+
+  verificationRequestsCreated  VerificationRequest[] @relation("VerificationRequestsCreated")
+  verificationRequestsReviewed VerificationRequest[] @relation("VerificationRequestsReviewed")
+
+  @@index([deletedAt])
+}
+
+model Store {
+  id            String   @id @default(uuid())
+  name          String
+  ownerId       String
+  createdAt     DateTime @default(now())
+  countryCode   String
+  description   String?
+  ratingAverage Float    @default(0)
+  ratingCount   Int      @default(0)
+
+  // Região principal/original.
+  // Mantida por compatibilidade com o código atual.
+  region String?
+
+  // Regiões autorizadas pelo sistema administrativo.
+  regions StoreRegion[]
+
+  // Quando true, somente SUPER_ADMIN
+  // pode manipular administrativamente esta loja.
+  regionalManagementLocked Boolean @default(false)
+
+  updatedAt DateTime @updatedAt
+
+  verificationType VerificationType?
+  verified         Boolean           @default(false)
+
+  isActive     Boolean   @default(true)
+  lastActivity DateTime?
+  avatarUrl    String?
+  bannerUrl    String?
+
+  conversations Conversation[]
+  posts         Post[]
+  products      Product[]
+  owner         User               @relation(fields: [ownerId], references: [id])
+  followers     StoreFollow[]
+  promotions    ProductPromotion[]
+  discounts     ProductDiscount[]
+
+  auctionBids AuctionBid[]
+
+  verificationRequests VerificationRequest[]
+
+  nationalRankingPositions NationalRankingPosition[]
+
+  nationalRankingAuctionWins NationalRankingAuction[] @relation("NationalRankingAuctionWinner")
+
+  nationalRankingAuctionBids NationalRankingAuctionBid[]
+  sitePayments               SitePayment[]
+  type                       StoreType                   @default(GENERAL_STORE)
+
+  @@index([isActive])
+  @@index([lastActivity])
+  @@index([verificationType])
+  @@index([verified])
+  @@index([regionalManagementLocked])
+  @@index([countryCode, region])
+  @@index([type])
+}
+
+enum VerificationType {
+  BASIC
+  PREMIUM
+}
+
+enum VerificationRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentType {
+  PROMOTION
+  VERIFICATION
+  NATIONAL_RANKING
+  OTHER
+}
+
+model VerificationRequest {
+  id String @id @default(uuid())
+
+  storeId String
+  store   Store  @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  requestedType VerificationType
+
+  status VerificationRequestStatus @default(PENDING)
+
+  requestedById String
+  requestedBy   User   @relation("VerificationRequestsCreated", fields: [requestedById], references: [id])
+
+  reviewedById String?
+  reviewedBy   User?   @relation("VerificationRequestsReviewed", fields: [reviewedById], references: [id])
+
+  rejectionReason String?
+
+  payments SitePayment[]
+
+  createdAt  DateTime  @default(now())
+  reviewedAt DateTime?
+
+  @@index([storeId])
+  @@index([status])
+  @@index([requestedType])
+  @@index([createdAt])
+}
+
+model StoreRegion {
+  id String @id @default(uuid())
+
+  storeId String
+  store   Store  @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  region String
+
+  createdAt DateTime @default(now())
+
+  @@unique([storeId, region])
+  @@index([region])
+  @@index([storeId])
+}
+
+enum ProductType {
+  NORMAL
+  AUCTION
+}
+
+model Product {
+  id               String                    @id @default(uuid())
+  name             String
+  description      String?
+  price            Float
+  stock            Int                       @default(0)
+  storeId          String
+  createdAt        DateTime                  @default(now())
+  updatedAt        DateTime                  @updatedAt
+  categoryId       String?
+  imageUrl         String?
+  isPublished      Boolean                   @default(true)
+  posts            Post[]
+  category         Category?                 @relation(fields: [categoryId], references: [id])
+  store            Store                     @relation(fields: [storeId], references: [id])
+  images           ProductImage[]
+  sharedInMessages Message[]
+  promotions       ProductPromotionProduct[]
+  discounts        ProductDiscountProduct[]
+
+  type ProductType @default(NORMAL)
+
+  // ====== LEILÃO ======
+
+  auctionStartPrice Float?
+
+  currentBid Float?
+
+  minimumIncrement Float?
+
+  reservePrice Float?
+
+  auctionStartsAt DateTime?
+
+  auctionEndsAt DateTime?
+
+  auctionWinnerId String?
+
+  auctionWinner User? @relation("AuctionWinner", fields: [auctionWinnerId], references: [id])
+
+  auctionClosed Boolean @default(false)
+
+  closedAt DateTime?
+
+  finalPrice Float?
+
+  bids AuctionBid[]
+
+  favoritedBy ProductFavorite[]
+
+  @@index([storeId])
+  @@index([categoryId])
+  @@index([createdAt])
+  @@index([storeId, categoryId, createdAt])
+  @@index([type])
+  @@index([auctionEndsAt])
+  @@index([auctionClosed])
+  @@index([type, auctionClosed])
+  @@index([type, auctionEndsAt])
+  @@index([auctionWinnerId])
+}
+
+enum ProductDiscountStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  EXPIRED
+  CANCELLED
+}
+
+model ProductDiscount {
+  id String @id @default(uuid())
+
+  storeId String
+  store   Store  @relation(fields: [storeId], references: [id])
+
+  name String?
+
+  discountPercent Float
+
+  startsAt DateTime
+  endsAt   DateTime
+
+  status ProductDiscountStatus @default(DRAFT)
+
+  products ProductDiscountProduct[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([storeId])
+  @@index([status])
+  @@index([startsAt, endsAt])
+}
+
+model ProductDiscountProduct {
+  id String @id @default(uuid())
+
+  discountId String
+  productId  String
+
+  discount ProductDiscount @relation(fields: [discountId], references: [id], onDelete: Cascade)
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([discountId, productId])
+  @@index([discountId])
+  @@index([productId])
+}
+
+model Category {
+  id        String     @id @default(uuid())
+  name      String
+  slug      String     @unique
+  parentId  String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  parent    Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children  Category[] @relation("CategoryTree")
+  products  Product[]
+
+  @@index([parentId])
+}
+
+model StoreFollow {
+  id        String   @id @default(uuid())
+  userId    String
+  storeId   String
+  createdAt DateTime @default(now())
+  store     Store    @relation(fields: [storeId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, storeId])
+}
+
+model ProductFavorite {
+  id String @id @default(uuid())
+
+  userId    String
+  productId String
+
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
+  @@unique([userId, productId])
+  @@index([userId])
+  @@index([productId])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  meta      Json?
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+model NotificationPreference {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  newProduct    Boolean  @default(true)
+  bancaFollowed Boolean  @default(true)
+  system        Boolean  @default(true)
+  inApp         Boolean  @default(true)
+  email         Boolean  @default(false)
+  whatsapp      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("notification_preferences")
+}
+
+model ProductImage {
+  id          String   @id @default(uuid())
+  productId   String
+  createdAt   DateTime @default(now())
+  isCover     Boolean  @default(false)
+  order       Int      @default(0)
+  height      Int?
+  isDeleted   Boolean  @default(false)
+  largeUrl    String?
+  mediumUrl   String?
+  originalUrl String
+  sizeKb      Int?
+  smallUrl    String?
+  thumbUrl    String?
+  version     Int      @default(1)
+  webpUrl     String?
+  width       Int?
+  product     Product  @relation(fields: [productId], references: [id])
+}
+
+model Post {
+  id               String      @id @default(cuid())
+  storeId          String
+  content          String?
+  type             PostType    @default(GENERAL)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  productId        String?
+  product          Product?    @relation(fields: [productId], references: [id])
+  store            Store       @relation(fields: [storeId], references: [id])
+  images           PostImage[]
+  sharedInMessages Message[]
+
+  @@index([storeId, createdAt])
+  @@index([productId])
+}
+
+model PostImage {
+  id     String @id @default(cuid())
+  postId String
+  url    String
+  order  Int
+  post   Post   @relation(fields: [postId], references: [id])
+
+  @@index([postId, order])
+}
+
+model Conversation {
+  id        String    @id @default(uuid())
+  userId    String
+  storeId   String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  store     Store     @relation(fields: [storeId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+  messages  Message[]
+
+  legalEvidence LegalMessageEvidence[]
+
+  @@unique([userId, storeId])
+  @@index([userId])
+  @@index([storeId])
+}
+
+model Message {
+  id             String      @id @default(uuid())
+  content        String?
+  senderId       String
+  conversationId String
+  createdAt      DateTime    @default(now())
+  readAt         DateTime?
+  audioUrl       String?
+  imageUrl       String?
+  messageType    MessageType @default(TEXT)
+  replyToId      String?
+  deletedAt      DateTime?
+
+  editedAt      DateTime?
+  deliveredAt   DateTime?
+  receiverId    String?
+  documentName  String?
+  documentUrl   String?
+  latitude      Float?
+  longitude     Float?
+  videoUrl      String?
+  thumbnailUrl  String?
+  conversation  Conversation           @relation(fields: [conversationId], references: [id])
+  replyTo       Message?               @relation("MessageReplies", fields: [replyToId], references: [id])
+  replies       Message[]              @relation("MessageReplies")
+  sender        User                   @relation(fields: [senderId], references: [id])
+  reactions     MessageReaction[]
+  legalEvidence LegalMessageEvidence[]
+
+  // compartilhamentos
+  sharedMessageId String?
+  sharedMessage   Message?  @relation("SharedMessage", fields: [sharedMessageId], references: [id])
+  sharedBy        Message[] @relation("SharedMessage")
+
+  sharedProductId String?
+  sharedProduct   Product? @relation(fields: [sharedProductId], references: [id])
+
+  sharedPostId String?
+  sharedPost   Post?   @relation(fields: [sharedPostId], references: [id])
+
+  @@index([conversationId])
+  @@index([createdAt])
+}
+
+model MessageReaction {
+  id        String   @id @default(cuid())
+  emoji     String
+  userId    String
+  messageId String
+  createdAt DateTime @default(now())
+  message   Message  @relation(fields: [messageId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, messageId, emoji])
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  LEGAL_INVESTIGATOR
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  REGIONAL_ADMIN
+}
+
+enum AdminStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  VIDEO
+  AUDIO
+  DOCUMENT
+  LOCATION
+
+  SHARED_MESSAGE
+  SHARED_PRODUCT
+  SHARED_POST
+  SHARED_LINK
+}
+
+model AuctionBid {
+  id String @id @default(cuid())
+
+  amount    Float
+  isWinning Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  productId String
+  userId    String
+  storeId   String
+
+  product Product @relation(fields: [productId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+  store   Store   @relation(fields: [storeId], references: [id])
+
+  @@index([productId])
+  @@index([userId])
+  @@index([storeId])
+  @@index([productId, createdAt])
+}
+
+enum PostType {
+  GENERAL
+  PRODUCT_PROMOTION
+  ANNOUNCEMENT
+  AUCTION
+}
+
+enum PromotionStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  EXPIRED
+  COMPLETED
+  CANCELLED
+}
+
+enum PromotionPlacement {
+  FEED
+  SEARCH
+  CATEGORY
+}
+
+model ProductPromotion {
+  id String @id @default(uuid())
+
+  storeId String
+  store   Store  @relation(fields: [storeId], references: [id])
+
+  packageId String
+  package   PromotionPackage @relation(fields: [packageId], references: [id])
+
+  name String
+
+  status PromotionStatus @default(DRAFT)
+
+  startsAt DateTime
+  endsAt   DateTime
+
+  impressionLimit Int
+  impressionsUsed Int @default(0)
+
+  priority Int @default(0)
+
+  placements ProductPromotionPlacement[]
+  products   ProductPromotionProduct[]
+  payments   SitePayment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([storeId])
+  @@index([packageId])
+  @@index([status])
+  @@index([startsAt, endsAt])
+  @@index([status, priority])
+}
+
+model ProductPromotionProduct {
+  id String @id @default(uuid())
+
+  promotionId String
+  productId   String
+
+  promotion ProductPromotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  product   Product          @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  // Ordem do produto dentro do carrossel
+  order Int @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@unique([promotionId, productId])
+  @@index([promotionId, order])
+  @@index([productId])
+}
+
+model ProductPromotionPlacement {
+  id String @id @default(uuid())
+
+  promotionId String
+  placement   PromotionPlacement
+
+  promotion ProductPromotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+
+  @@unique([promotionId, placement])
+  @@index([placement])
+}
+
+model PromotionPackage {
+  id          String @id
+  impressions Int
+  price       Int
+
+  isActive Boolean @default(true)
+
+  promotions ProductPromotion[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+}
+
+model VerificationPackage {
+  id String @id
+
+  verificationType VerificationType @unique
+
+  price Int
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([verificationType])
+}
+
+model SitePayment {
+  id String @id @default(uuid())
+
+  // =========================================================
+  // QUEM PAGOU
+  // =========================================================
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  // =========================================================
+  // BANCA RELACIONADA
+  // =========================================================
+  //
+  // Opcional porque alguns pagamentos futuros podem ser
+  // associados somente ao utilizador.
+  // =========================================================
+
+  storeId String?
+  store   Store?  @relation(fields: [storeId], references: [id], onDelete: SetNull)
+
+  // =========================================================
+  // TIPO
+  // =========================================================
+
+  type PaymentType
+
+  // =========================================================
+  // ESTADO
+  // =========================================================
+
+  status PaymentStatus @default(PENDING)
+
+  // =========================================================
+  // VALOR
+  // =========================================================
+  //
+  // É um SNAPSHOT do valor efetivamente contratado.
+  //
+  // Não devemos consultar PromotionPackage.price para
+  // descobrir quanto uma transação antiga custou.
+  // =========================================================
+
+  amount Int
+
+  currency String @default("MZN")
+
+  // =========================================================
+  // DESCRIÇÃO
+  // =========================================================
+
+  description String?
+
+  // =========================================================
+  // REFERÊNCIA DO PROVEDOR
+  // =========================================================
+
+  reference String? @unique
+
+  provider String?
+
+  // =========================================================
+  // DATA DO PAGAMENTO
+  // =========================================================
+
+  paidAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  // =========================================================
+  // RELAÇÕES DE SERVIÇOS
+  // =========================================================
+
+  promotionId String?
+
+  promotion ProductPromotion? @relation(fields: [promotionId], references: [id], onDelete: SetNull)
+
+  rankingAuctionId String?
+
+  rankingAuction NationalRankingAuction? @relation(fields: [rankingAuctionId], references: [id], onDelete: SetNull)
+
+  verificationRequestId String?
+  verificationRequest   VerificationRequest? @relation(fields: [verificationRequestId], references: [id], onDelete: SetNull)
+
+  // =========================================================
+  // DADOS EXTRAS
+  // =========================================================
+
+  metadata Json?
+
+  // =========================================================
+  // ÍNDICES
+  // =========================================================
+
+  @@index([userId])
+  @@index([storeId])
+  @@index([type])
+  @@index([status])
+  @@index([paidAt])
+  @@index([createdAt])
+  @@index([promotionId])
+  @@index([rankingAuctionId])
+  @@index([verificationRequestId])
+}
+
+model AdminProfile {
+  id String @id @default(uuid())
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  adminRole AdminRole
+  status    AdminStatus @default(ACTIVE)
+
+  // Região onde este administrador atua.
+  // SUPER_ADMIN normalmente terá null.
+  region String?
+
+  // Permissões
+  canManageVerifications  Boolean @default(false)
+  canApproveVerifications Boolean @default(false)
+  canRevokeVerifications  Boolean @default(false)
+
+  canManageStores Boolean @default(false)
+
+  canManageRanking Boolean @default(false)
+
+  // Pode criar/promover outros admins regionais.
+  canPromoteRegionalAdmins Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([adminRole])
+  @@index([status])
+  @@index([region])
+}
+
+model LegalInvestigatorProfile {
+  id String @id @default(uuid())
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  status LegalInvestigatorStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+}
+
+enum LegalInvestigatorStatus {
+  ACTIVE
+  SUSPENDED
+  REVOKED
+}
+
+model NationalRankingPosition {
+  id String @id @default(uuid())
+
+  countryCode String
+  position    Int
+
+  storeId String?
+  store   Store?  @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  assignedById String
+  assignedBy   User   @relation("NationalRankingAssignments", fields: [assignedById], references: [id])
+
+  auction NationalRankingAuction?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([countryCode, position])
+  @@index([countryCode])
+  @@index([storeId])
+  @@index([assignedById])
+}
+
+model NationalRankingAuction {
+  id String @id @default(uuid())
+
+  countryCode String
+  position    Int
+
+  name     String
+  imageUrl String?
+
+  startPrice       Float
+  currentBid       Float?
+  minimumIncrement Float?
+  reservePrice     Float?
+
+  startsAt DateTime
+  endsAt   DateTime
+
+  closed     Boolean   @default(false)
+  closedAt   DateTime?
+  finalPrice Float?
+
+  winnerStoreId String?
+  winnerStore   Store?  @relation("NationalRankingAuctionWinner", fields: [winnerStoreId], references: [id])
+
+  bids NationalRankingAuctionBid[]
+
+  payments SitePayment[]
+
+  rankingPosition NationalRankingPosition @relation(fields: [countryCode, position], references: [countryCode, position], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([countryCode, position])
+  @@index([countryCode])
+  @@index([endsAt])
+  @@index([closed])
+  @@index([winnerStoreId])
+}
+
+model NationalRankingAuctionBid {
+  id String @id @default(cuid())
+
+  amount    Float
+  isWinning Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  auctionId String
+  auction   NationalRankingAuction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  storeId String
+  store   Store  @relation(fields: [storeId], references: [id])
+
+  @@index([auctionId])
+  @@index([userId])
+  @@index([storeId])
+  @@index([auctionId, createdAt])
+}
+
+model LegalInvestigationAudit {
+  id String @id @default(uuid())
+
+  // =========================================================
+  // QUEM INICIOU A INVESTIGAÇÃO
+  // =========================================================
+
+  requestedById String
+  requestedBy   User   @relation(fields: [requestedById], references: [id])
+
+  // =========================================================
+  // REFERÊNCIA LEGAL
+  // =========================================================
+  //
+  // Número do processo, mandado, ordem judicial, etc.
+  // Não guardar aqui o conteúdo do documento judicial.
+  // =========================================================
+
+  legalReference String
+
+  // =========================================================
+  // MOTIVO / DESCRIÇÃO
+  // =========================================================
+
+  reason String
+
+  // =========================================================
+  // ESCOPO DA INVESTIGAÇÃO
+  // =========================================================
+  //
+  // Estes campos registram o que foi autorizado/pesquisado.
+  // Não guardar resultados das mensagens neste registro.
+  // =========================================================
+
+  userId         String?
+  storeId        String?
+  conversationId String?
+  messageId      String?
+
+  // Intervalo temporal investigado
+  fromDate DateTime?
+  toDate   DateTime?
+
+  // Pesquisa textual, se futuramente for permitida.
+  // Pode ficar null quando a investigação for apenas por IDs.
+  searchTerm String?
+
+  // =========================================================
+  // RESULTADO DA OPERAÇÃO
+  // =========================================================
+
+  resultCount Int @default(0)
+
+  // =========================================================
+  // CONTEXTO TÉCNICO
+  // =========================================================
+
+  ipAddress String?
+  userAgent String?
+
+  // =========================================================
+  // ESTADO
+  // =========================================================
+
+  status LegalInvestigationStatus @default(COMPLETED)
+
+  errorMessage String?
+
+  queries              LegalInvestigationQueryAudit[]
+  legalEvidence        LegalMessageEvidence[]
+  evidenceAccessAudits LegalEvidenceAccessAudit[]
+
+  legalHold LegalHold?
+
+  // =========================================================
+  // DATA
+  // =========================================================
+
+  createdAt DateTime @default(now())
+
+  @@index([requestedById])
+  @@index([legalReference])
+  @@index([userId])
+  @@index([storeId])
+  @@index([conversationId])
+  @@index([messageId])
+  @@index([createdAt])
+}
+
+enum LegalInvestigationStatus {
+  STARTED
+  COMPLETED
+  FAILED
+}
+
+model LegalInvestigationQueryAudit {
+  id String @id @default(uuid())
+
+  investigationId String
+  investigation   LegalInvestigationAudit @relation(fields: [investigationId], references: [id], onDelete: Cascade)
+
+  requestedById String
+  requestedBy   User   @relation(fields: [requestedById], references: [id])
+
+  conversationId String?
+  messageId      String?
+
+  userId  String?
+  storeId String?
+
+  fromDate DateTime?
+  toDate   DateTime?
+
+  searchTerm String?
+
+  messageType MessageType?
+
+  resultCount Int @default(0)
+
+  ipAddress String?
+  userAgent String?
+
+  status LegalInvestigationQueryStatus @default(STARTED)
+
+  errorMessage String?
+
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  @@index([investigationId])
+  @@index([requestedById])
+  @@index([conversationId])
+  @@index([messageId])
+  @@index([userId])
+  @@index([storeId])
+  @@index([createdAt])
+}
+
+enum LegalInvestigationQueryStatus {
+  STARTED
+  COMPLETED
+  FAILED
+}
+
+model LegalInvestigationDeniedAttempt {
+  id String @id @default(uuid())
+
+  requestedById String?
+  requestedBy   User?   @relation(fields: [requestedById], references: [id], onDelete: SetNull)
+
+  investigationId String?
+
+  reason String
+
+  ipAddress String?
+  userAgent String?
+
+  method String?
+  path   String?
+
+  createdAt DateTime @default(now())
+
+  @@index([requestedById])
+  @@index([investigationId])
+  @@index([createdAt])
+}
+
+model LegalHold {
+  id String @id @default(uuid())
+
+  investigationId String                  @unique
+  investigation   LegalInvestigationAudit @relation(fields: [investigationId], references: [id], onDelete: Cascade)
+
+  createdById String
+  createdBy   User   @relation("LegalHoldCreatedBy", fields: [createdById], references: [id])
+
+  status   LegalHoldStatus        @default(ACTIVE)
+  evidence LegalMessageEvidence[]
+
+  releasedById String?
+  releasedBy   User?   @relation("LegalHoldReleasedBy", fields: [releasedById], references: [id], onDelete: Restrict)
+
+  // =========================================================
+  // ESCOPO CONGELADO DO LEGAL HOLD
+  // =========================================================
+
+  userId         String?
+  storeId        String?
+  conversationId String?
+  messageId      String?
+
+  fromDate DateTime?
+  toDate   DateTime?
+
+  // =========================================================
+  // CONTROLO DO CICLO DE VIDA
+  // =========================================================
+
+  createdAt DateTime @default(now())
+
+  releasedAt DateTime?
+
+  releaseReason String?
+
+  releasedFromIpAddress String?
+  releasedByUserAgent   String?
+
+  updatedAt DateTime @updatedAt
+
+  @@index([createdById])
+  @@index([status])
+  @@index([userId])
+  @@index([storeId])
+  @@index([conversationId])
+  @@index([createdAt])
+  @@index([messageId])
+}
+
+enum LegalHoldStatus {
+  ACTIVE
+  RELEASED
+}
+
+model LegalMessageEvidence {
+  id String @id @default(uuid())
+
+  messageId String
+  message   Message @relation(fields: [messageId], references: [id], onDelete: Restrict)
+
+  investigationId String
+  investigation   LegalInvestigationAudit @relation(fields: [investigationId], references: [id], onDelete: Cascade)
+
+  holdId    String
+  legalHold LegalHold @relation(fields: [holdId], references: [id], onDelete: Restrict)
+
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Restrict)
+
+  senderId String
+  sender   User   @relation("LegalEvidenceSender", fields: [senderId], references: [id], onDelete: Restrict)
+
+  receiverId String?
+  receiver   User?   @relation("LegalEvidenceReceiver", fields: [receiverId], references: [id], onDelete: Restrict)
+
+  messageType MessageType
+
+  encryptedContent String?
+
+  accessAudits LegalEvidenceAccessAudit[]
+
+  encryptedAudioReference     String?
+  encryptedImageReference     String?
+  encryptedVideoReference     String?
+  encryptedDocumentReference  String?
+  encryptedThumbnailReference String?
+
+  documentName String?
+
+  evidenceHash String
+
+  capturedAt DateTime @default(now())
+
+  originalDeletedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@unique([messageId, investigationId])
+  @@index([messageId])
+  @@index([investigationId])
+  @@index([holdId])
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([capturedAt])
+  @@index([evidenceHash])
+}
+
+enum LegalEvidenceAccessAction {
+  VIEW
+  MEDIA
+}
+
+enum LegalEvidenceAccessStatus {
+  STARTED
+  COMPLETED
+  FAILED
+}
+
+model LegalEvidenceAccessAudit {
+  id String @id @default(uuid())
+
+  investigationId String
+  evidenceId      String
+  requestedById   String
+
+  action    LegalEvidenceAccessAction
+  mediaType String?
+
+  status LegalEvidenceAccessStatus @default(STARTED)
+
+  ipAddress    String?
+  userAgent    String?
+  errorMessage String?
+
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  investigation LegalInvestigationAudit @relation(fields: [investigationId], references: [id], onDelete: Cascade)
+
+  evidence LegalMessageEvidence @relation(fields: [evidenceId], references: [id], onDelete: Restrict)
+
+  requestedBy User @relation(fields: [requestedById], references: [id])
+
+  @@index([investigationId])
+  @@index([evidenceId])
+  @@index([requestedById])
+  @@index([createdAt])
+  @@index([status])
+}
+
+model LegalInvestigatorRoleAudit {
+  id           String   @id @default(uuid())
+  actorId      String
+  targetUserId String
+  fromStatus   String?
+  toStatus     String
+  createdAt    DateTime @default(now())
+
+  @@index([targetUserId])
+  @@index([actorId])
+  @@index([createdAt])
+}
+
+enum StoreType {
+  GENERAL_STORE
+  MARKET_STALL
+  SUPERMARKET
+  RESTAURANT
+  BAKERY
+  PHARMACY
+  CLINIC
+  BEAUTY
+  FASHION
+  ELECTRONICS
+  HARDWARE
+  AUTO
+  AGRO
+  BOOKS
+  SERVICES
+  OTHER
+}

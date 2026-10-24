@@ -1,0 +1,8 @@
+-- CreateEnum
+CREATE TYPE "StoreType" AS ENUM ('GENERAL_STORE', 'MARKET_STALL', 'SUPERMARKET', 'RESTAURANT', 'BAKERY', 'PHARMACY', 'CLINIC', 'BEAUTY', 'FASHION', 'ELECTRONICS', 'HARDWARE', 'AUTO', 'AGRO', 'BOOKS', 'SERVICES', 'OTHER');
+
+-- AlterTable
+ALTER TABLE "Store" ADD COLUMN     "type" "StoreType" NOT NULL DEFAULT 'GENERAL_STORE';
+
+-- CreateIndex
+CREATE INDEX "Store_type_idx" ON "Store"("type");

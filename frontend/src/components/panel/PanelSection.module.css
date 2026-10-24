@@ -1,0 +1,228 @@
+.section {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  overflow: hidden;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.section:hover {
+  border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
+}
+
+/* ---------- Cabeçalho ---------- */
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-right: 16px;
+}
+
+.toggle {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 16px 18px 20px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.toggle:hover {
+  background: var(--surface-glass);
+}
+
+.toggle:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface-glass);
+  color: var(--primary);
+}
+
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.description {
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  line-height: 1.35;
+}
+
+.summary {
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.chevron {
+  flex-shrink: 0;
+  color: var(--text-soft);
+  transition: transform 0.28s ease;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* ---------- Corpo (animado) ---------- */
+
+.body {
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+  transition:
+    grid-template-rows 0.28s ease,
+    visibility 0s linear 0.28s;
+}
+
+.bodyOpen {
+  grid-template-rows: 1fr;
+  visibility: visible;
+  transition:
+    grid-template-rows 0.28s ease,
+    visibility 0s linear 0s;
+}
+
+.bodyInner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 4px 20px 20px;
+  border-top: 1px solid transparent;
+}
+
+/* ---------- Ações rápidas ---------- */
+
+.quickGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px;
+}
+
+.quickAction {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.quickAction:hover {
+  transform: translateY(-2px);
+  background: var(--surface-glass);
+  border-color: var(--primary);
+}
+
+.quickActionHighlight {
+  border-color: var(--primary);
+}
+
+.quickIcon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--surface-glass);
+  color: var(--primary);
+}
+
+.quickText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.quickText strong {
+  font-weight: 700;
+}
+
+.quickText small {
+  color: var(--text-soft);
+  font-weight: 400;
+}
+
+/* ---------- Mobile ---------- */
+
+@media (max-width: 640px) {
+  .header {
+    flex-wrap: wrap;
+    padding-right: 0;
+  }
+
+  .toggle {
+    flex-basis: 100%;
+    padding: 16px;
+  }
+
+  .summary {
+    display: none;
+  }
+
+  .actions {
+    padding: 0 16px 14px;
+  }
+
+  .content {
+    padding: 4px 16px 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .body,
+  .bodyOpen,
+  .chevron {
+    transition: none;
+  }
+}

@@ -1,0 +1,178 @@
+.wrapper{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:24px;
+
+}
+
+.card{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:18px;
+
+    padding:24px;
+
+    border-radius:18px;
+
+    background:var(--surface-glass);
+
+    border:1px solid var(--border);
+
+    box-shadow:0 4px 18px rgba(0,0,0,.06);
+
+}
+
+.card h2{
+
+    margin:0 0 24px;
+
+    color:var(--text);
+
+}
+
+.item{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    gap:20px;
+
+    padding:14px 0;
+
+    border-bottom:1px solid var(--border);
+    background:var(--surface-glass);
+
+}
+
+.item:last-child{
+
+    border-bottom:none;
+
+}
+
+.item span{
+
+    color:var(--text-secondary);
+
+}
+
+.item strong{
+
+    color:var(--text);
+
+    font-weight:600;
+
+    text-align:right;
+
+}
+
+.menu{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:14px;
+    background:var(--surface-glass);
+
+}
+
+.settingCard{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:14px;
+
+}
+
+.settingButton{
+
+    width:100%;
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding:16px;
+
+    border:1px solid var(--border);
+
+    border-radius:12px;
+
+    background:var(--surface-glass);
+
+    color:var(--text);
+
+    cursor:pointer;
+
+    font-size:15px;
+
+    transition:
+        background .2s,
+        border-color .2s,
+        transform .18s;
+
+}
+
+.settingButton:hover{
+
+    background:var(--surface-hover);
+
+    transform:translateY(-1px);
+
+}
+
+.active{
+
+    background:var(--primary);
+
+    color:var(--button-text);
+
+    border-color:var(--primary);
+
+}
+
+.delete{
+
+    background:var(--danger)!important;
+
+    color:var(--button-text)!important;
+
+}
+
+.delete:hover{
+
+    background:var(--danger-hover)!important;
+
+}
+
+@media(max-width:700px){
+
+    .item{
+
+        flex-direction:column;
+
+        align-items:flex-start;
+
+    }
+
+    .item strong{
+
+        text-align:left;
+
+    }
+
+}

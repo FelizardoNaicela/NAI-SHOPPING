@@ -1,0 +1,115 @@
+.page {
+    min-height: 100vh;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background: #f4f6f8;
+}
+
+.card {
+    width: 100%;
+    max-width: 420px;
+
+    background: white;
+
+    border-radius: 22px;
+
+    padding: 40px;
+
+    box-shadow:
+        0 20px 60px rgba(0,0,0,.12);
+}
+
+.logo {
+    text-align: center;
+
+    margin-bottom: 34px;
+}
+
+.logo h1 {
+    margin: 0;
+
+    color: #c58c22;
+
+    font-size: 48px;
+
+    font-weight: 800;
+
+    letter-spacing: 3px;
+}
+
+.logo p {
+    margin-top: 8px;
+
+    color: #666;
+
+    font-size: 15px;
+}
+
+.input {
+    width: 100%;
+
+    padding: 14px 16px;
+
+    margin-bottom: 18px;
+
+    border: 1px solid #ddd;
+
+    border-radius: 12px;
+
+    font-size: 15px;
+
+    outline: none;
+
+    transition: .2s;
+}
+
+.input:focus {
+    border-color: #c58c22;
+
+    box-shadow: 0 0 0 3px rgba(197,140,34,.15);
+}
+
+.button {
+    width: 100%;
+
+    padding: 14px;
+
+    border: none;
+
+    border-radius: 12px;
+
+    background: #c58c22;
+
+    color: white;
+
+    font-size: 16px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: .2s;
+}
+
+.button:hover {
+    background: #b57c15;
+}
+
+.register {
+    margin-top: 22px;
+
+    text-align: center;
+
+    color: #c58c22;
+
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+.register:hover {
+    text-decoration: underline;
+}

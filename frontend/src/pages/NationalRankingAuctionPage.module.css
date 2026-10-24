@@ -1,0 +1,1360 @@
+.page {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 24px 60px;
+  box-sizing: border-box;
+  color: var(--text);
+}
+
+
+/* =========================================
+   LOADING
+========================================= */
+
+.loading {
+  min-height: 70vh;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: 15px;
+
+  color: var(--text-secondary);
+}
+
+
+.loading p {
+  margin: 0;
+  font-size: 14px;
+}
+
+
+.loadingSpinner {
+  width: 38px;
+  height: 38px;
+
+  border: 3px solid var(--border);
+  border-top-color: var(--primary);
+
+  border-radius: 50%;
+
+  animation:
+    nationalAuctionSpin
+    0.8s linear infinite;
+}
+
+
+@keyframes nationalAuctionSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+/* =========================================
+   HEADER
+========================================= */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 16px;
+
+  margin-bottom: 18px;
+}
+
+
+.backButton,
+.refreshButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  padding: 10px 14px;
+
+  border: 1px solid var(--border);
+  border-radius: 11px;
+
+  background: var(--surface);
+  color: var(--text);
+
+  font-size: 13px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s,
+    border-color 0.2s,
+    opacity 0.2s;
+}
+
+
+.backButton:hover,
+.refreshButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: var(--primary);
+}
+
+
+.refreshButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+
+/* =========================================
+   POSITION HERO
+========================================= */
+
+.positionHero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  padding: 20px;
+
+  margin-bottom: 20px;
+
+  border: 1px solid var(--border);
+  border-radius: 18px;
+
+  background: var(--surface);
+
+  box-shadow:
+    0 5px 20px rgba(0, 0, 0, 0.04);
+}
+
+
+.positionHeroLeft {
+  display: flex;
+  align-items: center;
+
+  gap: 15px;
+}
+
+
+.positionMedal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 62px;
+  height: 62px;
+
+  flex-shrink: 0;
+
+  border-radius: 16px;
+
+  background: var(--surface-secondary);
+
+  font-size: 34px;
+}
+
+
+.eyebrow {
+  margin-bottom: 5px;
+
+  color: var(--primary);
+
+  font-size: 11px;
+  font-weight: 900;
+
+  letter-spacing: 0.08em;
+}
+
+
+.title {
+  margin: 0;
+
+  font-size: 27px;
+  line-height: 1.15;
+  font-weight: 850;
+}
+
+
+.countryText {
+  margin: 7px 0 0;
+
+  color: var(--text-secondary);
+
+  font-size: 13px;
+}
+
+
+.heroStatus {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+
+  gap: 8px;
+}
+
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 6px 10px;
+
+  border-radius: 999px;
+
+  font-size: 10px;
+  font-weight: 900;
+
+  letter-spacing: 0.05em;
+}
+
+
+.statusActive {
+  background: rgba(52, 211, 47, 0.12);
+  color: #20a520;
+}
+
+
+.statusUpcoming {
+  background: rgba(59, 130, 246, 0.12);
+  color: #2563eb;
+}
+
+
+.statusEnding {
+  background: rgba(245, 158, 11, 0.14);
+  color: #d97706;
+}
+
+
+.statusClosed {
+  background: rgba(127, 127, 127, 0.14);
+  color: var(--text-secondary);
+}
+
+
+.viewerCount {
+  color: var(--text-secondary);
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+
+/* =========================================
+   MAIN GRID
+========================================= */
+
+.mainGrid {
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    360px;
+
+  align-items: start;
+
+  gap: 22px;
+}
+
+
+.mainColumn,
+.sideColumn {
+  min-width: 0;
+}
+
+
+.mainColumn {
+  display: flex;
+  flex-direction: column;
+
+  gap: 20px;
+}
+
+
+.sideColumn {
+  position: sticky;
+  top: 20px;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 16px;
+}
+
+
+/* =========================================
+   IMAGE
+========================================= */
+
+.imageCard {
+  overflow: hidden;
+
+  border: 1px solid var(--border);
+  border-radius: 20px;
+
+  background: var(--surface);
+
+  box-shadow:
+    0 7px 24px rgba(0, 0, 0, 0.05);
+}
+
+
+.auctionImage,
+.imagePlaceholder {
+  display: block;
+
+  width: 100%;
+
+  aspect-ratio: 16 / 9;
+
+  object-fit: cover;
+}
+
+
+.imagePlaceholder {
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--surface-secondary),
+      var(--surface)
+    );
+}
+
+
+.imagePlaceholder span {
+  font-size: 70px;
+  line-height: 1;
+}
+
+
+.imagePlaceholder strong {
+  font-size: 18px;
+}
+
+
+.imagePlaceholder small {
+  color: var(--text-secondary);
+
+  font-size: 13px;
+}
+
+
+/* =========================================
+   INFO CARD
+========================================= */
+
+.infoCard,
+.historyCard,
+.datesCard,
+.warningCard,
+.bidCard {
+  border: 1px solid var(--border);
+  border-radius: 18px;
+
+  background: var(--surface);
+}
+
+
+.infoCard {
+  padding: 20px;
+}
+
+
+.cardEyebrow {
+  color: var(--primary);
+
+  font-size: 10px;
+  font-weight: 900;
+
+  letter-spacing: 0.08em;
+}
+
+
+.auctionName {
+  margin: 7px 0 0;
+
+  font-size: 24px;
+  line-height: 1.25;
+  font-weight: 850;
+}
+
+
+.description {
+  margin: 9px 0 0;
+
+  color: var(--text-secondary);
+
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+
+.infoGrid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 10px;
+
+  margin-top: 18px;
+}
+
+
+.infoItem {
+  display: flex;
+  flex-direction: column;
+
+  gap: 4px;
+
+  padding: 12px;
+
+  border-radius: 12px;
+
+  background: var(--surface-secondary);
+}
+
+
+.infoItem span {
+  color: var(--text-secondary);
+
+  font-size: 11px;
+}
+
+
+.infoItem strong {
+  font-size: 13px;
+}
+
+
+/* =========================================
+   BID CARD
+========================================= */
+
+.bidCard {
+  padding: 18px;
+}
+
+
+.bidCardHeader {
+  display: flex;
+  flex-direction: column;
+
+  gap: 5px;
+}
+
+
+.bidCardHeader span {
+  color: var(--text-secondary);
+
+  font-size: 13px;
+}
+
+
+.bidCardHeader strong {
+  font-size: 30px;
+  line-height: 1.1;
+  font-weight: 900;
+}
+
+
+.nextBidBox {
+  display: flex;
+  flex-direction: column;
+
+  gap: 4px;
+
+  margin-top: 15px;
+  padding: 13px;
+
+  border-radius: 12px;
+
+  background: var(--surface-secondary);
+}
+
+
+.nextBidBox span {
+  color: var(--text-secondary);
+
+  font-size: 11px;
+}
+
+
+.nextBidBox strong {
+  font-size: 17px;
+}
+
+
+/* =========================================
+   COUNTDOWN
+========================================= */
+
+.countdownBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  gap: 5px;
+
+  margin-top: 14px;
+  padding: 15px;
+
+  border-radius: 14px;
+
+  background: var(--surface-secondary);
+
+  text-align: center;
+}
+
+
+.countdownBox span {
+  color: var(--text-secondary);
+
+  font-size: 11px;
+}
+
+
+.countdownBox strong {
+  font-size: 26px;
+  line-height: 1;
+
+  font-variant-numeric: tabular-nums;
+}
+
+
+/* =========================================
+   CLOSED
+========================================= */
+
+.closedBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  gap: 6px;
+
+  margin-top: 14px;
+  padding: 15px;
+
+  border-radius: 14px;
+
+  background: var(--surface-secondary);
+
+  text-align: center;
+}
+
+
+.closedBox span {
+  color: var(--text-secondary);
+
+  font-size: 12px;
+}
+
+
+.closedBox strong {
+  font-size: 22px;
+}
+
+
+/* =========================================
+   BID FORM
+========================================= */
+
+.bidForm {
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+
+  margin-top: 17px;
+}
+
+
+.bidForm label {
+  font-size: 12px;
+  font-weight: 800;
+}
+
+
+.bidInputWrapper {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+}
+
+
+.bidInputWrapper input {
+  width: 100%;
+
+  box-sizing: border-box;
+
+  padding: 13px 48px 13px 13px;
+
+  border: 1px solid var(--border);
+  border-radius: 11px;
+
+  background: var(--surface-secondary);
+  color: var(--text);
+
+  font-size: 16px;
+  font-weight: 700;
+
+  outline: none;
+}
+
+
+.bidInputWrapper input:focus {
+  border-color: var(--primary);
+}
+
+
+.bidInputWrapper span {
+  position: absolute;
+
+  right: 13px;
+
+  color: var(--text-secondary);
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+
+.bidButton {
+  width: 100%;
+
+  padding: 13px 16px;
+
+  margin-top: 3px;
+
+  border: none;
+  border-radius: 11px;
+
+  background: var(--primary);
+  color: #fff;
+
+  font-size: 14px;
+  font-weight: 850;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s,
+    opacity 0.2s;
+}
+
+
+.bidButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  opacity: 0.9;
+}
+
+
+.bidButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+
+.bidHint {
+  margin: 2px 0 0;
+
+  color: var(--text-secondary);
+
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+
+/* =========================================
+   MESSAGES
+========================================= */
+
+.bidError,
+.bidSuccess {
+  margin-top: 13px;
+
+  padding: 11px 12px;
+
+  border-radius: 10px;
+
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+
+.bidError {
+  color: var(--danger);
+
+  background: rgba(220, 38, 38, 0.08);
+}
+
+
+.bidSuccess {
+  color: #168b16;
+
+  background: rgba(52, 211, 47, 0.10);
+}
+
+
+.upcomingMessage,
+.closedMessage {
+  margin-top: 15px;
+
+  padding: 12px;
+
+  border-radius: 11px;
+
+  background: var(--surface-secondary);
+
+  color: var(--text-secondary);
+
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+
+/* =========================================
+   DATES
+========================================= */
+
+.datesCard {
+  padding: 17px;
+}
+
+
+.datesCard h3 {
+  margin: 0 0 13px;
+
+  font-size: 14px;
+}
+
+
+.dateRow {
+  display: flex;
+  flex-direction: column;
+
+  gap: 4px;
+
+  padding: 10px 0;
+
+  border-bottom: 1px solid var(--border);
+}
+
+
+.dateRow:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+
+.dateRow span {
+  color: var(--text-secondary);
+
+  font-size: 11px;
+}
+
+
+.dateRow strong {
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+
+/* =========================================
+   WARNING
+========================================= */
+
+.warningCard {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 11px;
+
+  padding: 15px;
+}
+
+
+.warningIcon {
+  flex-shrink: 0;
+
+  font-size: 18px;
+}
+
+
+.warningCard h3 {
+  margin: 0 0 6px;
+
+  font-size: 13px;
+}
+
+
+.warningCard p {
+  margin: 6px 0;
+
+  color: var(--text-secondary);
+
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+
+/* =========================================
+   HISTORY
+========================================= */
+
+.historyCard {
+  padding: 18px;
+}
+
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  margin-bottom: 14px;
+}
+
+
+.sectionHeader h2 {
+  margin: 5px 0 0;
+
+  font-size: 20px;
+}
+
+
+.bidCount {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 30px;
+  height: 30px;
+
+  padding: 0 8px;
+
+  box-sizing: border-box;
+
+  border-radius: 999px;
+
+  background: var(--surface-secondary);
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+
+.bidList {
+  display: flex;
+  flex-direction: column;
+}
+
+
+.bidRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 15px;
+
+  padding: 12px 0;
+
+  border-bottom: 1px solid var(--border);
+}
+
+
+.bidRow:last-child {
+  border-bottom: none;
+}
+
+
+.winningBid {
+  padding-left: 9px;
+  padding-right: 9px;
+
+  border-radius: 10px;
+
+  background: var(--surface-secondary);
+}
+
+
+.bidIdentity {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  min-width: 0;
+}
+
+
+.bidAvatar,
+.bidAvatarPlaceholder {
+  width: 36px;
+  height: 36px;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+}
+
+
+.bidAvatar {
+  object-fit: cover;
+}
+
+
+.bidAvatarPlaceholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: var(--surface-secondary);
+
+  font-size: 17px;
+}
+
+
+.bidIdentity > div:last-child {
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+
+  gap: 3px;
+}
+
+
+.bidIdentity strong {
+  overflow: hidden;
+
+  max-width: 250px;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  font-size: 13px;
+}
+
+
+.bidIdentity span {
+  color: var(--text-secondary);
+
+  font-size: 10px;
+}
+
+
+.bidAmount {
+  display: flex;
+  flex-direction: column;
+
+  align-items: flex-end;
+
+  gap: 3px;
+
+  flex-shrink: 0;
+}
+
+
+.bidAmount strong {
+  font-size: 14px;
+}
+
+
+.winningLabel {
+  color: var(--primary);
+
+  font-size: 8px;
+  font-weight: 900;
+
+  letter-spacing: 0.04em;
+}
+
+
+.emptyHistory {
+  padding: 30px 10px;
+
+  color: var(--text-secondary);
+
+  font-size: 13px;
+
+  text-align: center;
+}
+
+
+/* =========================================
+   MOBILE HISTORY BUTTON
+========================================= */
+
+.mobileHistoryButton {
+  display: none;
+
+  width: 100%;
+
+  padding: 13px;
+
+  border: 1px solid var(--border);
+  border-radius: 12px;
+
+  background: var(--surface);
+  color: var(--text);
+
+  font-size: 13px;
+  font-weight: 800;
+
+  cursor: pointer;
+}
+
+
+/* =========================================
+   HISTORY OVERLAY
+========================================= */
+
+.historyOverlay {
+  display: none;
+
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 1000;
+
+  align-items: flex-end;
+
+  justify-content: center;
+
+  padding: 0;
+
+  background: rgba(0, 0, 0, 0.45);
+}
+
+
+.historySheet {
+  width: 100%;
+  max-height: 82vh;
+
+  overflow-y: auto;
+
+  box-sizing: border-box;
+
+  padding: 20px;
+
+  border-radius: 20px 20px 0 0;
+
+  background: var(--surface);
+}
+
+
+.sheetHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 15px;
+
+  margin-bottom: 15px;
+}
+
+
+.sheetHeader h2 {
+  margin: 5px 0 0;
+
+  font-size: 20px;
+}
+
+
+.closeSheetButton {
+  width: 34px;
+  height: 34px;
+
+  border: none;
+  border-radius: 50%;
+
+  background: var(--surface-secondary);
+  color: var(--text);
+
+  font-size: 24px;
+  line-height: 1;
+
+  cursor: pointer;
+}
+
+
+/* =========================================
+   ERROR PAGE
+========================================= */
+
+.errorPage {
+  min-height: 60vh;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 40px 20px;
+
+  text-align: center;
+}
+
+
+.errorIcon {
+  margin-bottom: 10px;
+
+  font-size: 48px;
+}
+
+
+.errorPage h1 {
+  margin: 0 0 8px;
+
+  font-size: 24px;
+}
+
+
+.errorPage p {
+  max-width: 500px;
+
+  margin: 0 0 20px;
+
+  color: var(--text-secondary);
+
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+
+.secondaryButton {
+  padding: 11px 16px;
+
+  border: 1px solid var(--border);
+  border-radius: 11px;
+
+  background: var(--surface);
+  color: var(--text);
+
+  font-weight: 800;
+
+  cursor: pointer;
+}
+
+
+/* =========================================
+   TABLET
+========================================= */
+
+@media (max-width: 950px) {
+
+  .mainGrid {
+    grid-template-columns:
+      minmax(0, 1fr)
+      320px;
+
+    gap: 16px;
+  }
+
+
+  .page {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+}
+
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 760px) {
+
+  .page {
+    padding:
+      16px 14px 40px;
+  }
+
+
+  .header {
+    margin-bottom: 14px;
+  }
+
+
+  .backButton span {
+    display: none;
+  }
+
+
+  .backButton,
+  .refreshButton {
+    min-height: 40px;
+  }
+
+
+  .positionHero {
+    align-items: flex-start;
+
+    flex-direction: column;
+
+    padding: 16px;
+  }
+
+
+  .heroStatus {
+    width: 100%;
+
+    flex-direction: row;
+
+    align-items: center;
+    justify-content: space-between;
+  }
+
+
+  .mainGrid {
+    display: flex;
+    flex-direction: column;
+
+    gap: 16px;
+  }
+
+
+  .sideColumn {
+    position: static;
+
+    width: 100%;
+  }
+
+
+  .historyCard {
+    display: none;
+  }
+
+
+  .mobileHistoryButton {
+    display: block;
+  }
+
+
+  .historyOverlay {
+    display: flex;
+  }
+
+
+  .auctionName {
+    font-size: 21px;
+  }
+
+
+  .bidCardHeader strong {
+    font-size: 27px;
+  }
+
+
+  .countdownBox strong {
+    font-size: 24px;
+  }
+
+}
+
+
+/* =========================================
+   MOBILE PEQUENO
+========================================= */
+
+@media (max-width: 430px) {
+
+  .page {
+    padding:
+      12px 10px 30px;
+  }
+
+
+  .positionHeroLeft {
+    gap: 11px;
+  }
+
+
+  .positionMedal {
+    width: 52px;
+    height: 52px;
+
+    border-radius: 13px;
+
+    font-size: 28px;
+  }
+
+
+  .title {
+    font-size: 23px;
+  }
+
+
+  .positionHero {
+    border-radius: 15px;
+  }
+
+
+  .imageCard {
+    border-radius: 15px;
+  }
+
+
+  .infoCard,
+  .bidCard,
+  .datesCard,
+  .warningCard {
+    border-radius: 15px;
+  }
+
+
+  .infoCard {
+    padding: 16px;
+  }
+
+
+  .infoGrid {
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .bidRow {
+    gap: 8px;
+  }
+
+
+  .bidIdentity strong {
+    max-width: 145px;
+  }
+
+
+  .bidAmount strong {
+    font-size: 13px;
+  }
+
+
+  .bidInputWrapper input {
+    font-size: 15px;
+  }
+
+}
