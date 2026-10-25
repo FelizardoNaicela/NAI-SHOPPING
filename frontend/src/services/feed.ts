@@ -65,38 +65,27 @@ export async function listStoreFeed(
   };
 }
 
+
 export async function listGlobalFeed(params: {
   cursor?: string;
   limit: number;
 }) {
-  const { cursor, limit } = params;
-
-  const token = localStorage.getItem("token");
-
-  const country = localStorage.getItem("feed_country");
-  const region = localStorage.getItem("feed_region");
-
-  let url = `http://localhost:3000/posts/feed?limit=${limit}`;
-
-  if (cursor) url += `&cursor=${cursor}`;
-if (country) {
-    url += `&countryCode=${country}`;}
-  if (region !== null) {
-    url += `&region=${encodeURIComponent(region ?? "")}`;
-}
-
-  const res = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${token}`,
+  const { data } = await api.get("/posts/feed", {
+    params: {
+      limit: params.limit,
+      ...(params.cursor ? { cursor: params.cursor } : {}),
+      ...(localStorage.getItem("feed_country")
+        ? { countryCode: localStorage.getItem("feed_country") }
+        : {}),
+      ...(localStorage.getItem("feed_region") !== null
+        ? { region: localStorage.getItem("feed_region") ?? "" }
+        : {}),
     },
   });
 
-  if (!res.ok) {
-    throw new Error("Erro ao carregar feed");
-  }
-
-  return res.json();
+  return data;
 }
+
 
 export async function listFollowingFeed(params: {
   cursor?: string;

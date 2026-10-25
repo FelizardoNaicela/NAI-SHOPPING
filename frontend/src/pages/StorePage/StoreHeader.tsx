@@ -4,7 +4,9 @@ import SmartImage from "../../components/SmartImage";
 import StoreTypeBadge from "../../components/store/StoreTypeBadge";
 import VerificationBadge from "../../components/VerificationBadge";
 
-const API_URL = "http://localhost:3000";
+const API_URL = (
+  import.meta.env.VITE_API_URL || "http://localhost:3000"
+).replace(/\/+$/, "");
 
 interface Props {
   store: {

@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import styles from "./DrawerProfile.module.css";
 import { CircleUserRound } from "lucide-react";
 import { User } from "lucide-react";
+import { getImageUrl } from "../../utils/image";
 
 type DrawerProfileProps = {
     isAuthenticated: boolean;
@@ -79,11 +80,7 @@ export default function DrawerProfile({
                     user?.avatarUrl ? (
 
                        <img
-    src={
-        user?.avatarUrl
-            ? `http://localhost:3000${user.avatarUrl}`
-            : "/default-avatar.png"
-    }
+    src={getImageUrl(user.avatarUrl)}
     alt="Avatar"
 />
 

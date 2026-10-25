@@ -2,6 +2,7 @@ import type { Message } from "./types";
 import { ChatAudioPlayer } from "./ChatAudioPlayer";
 import LinkText from "./LinkText";
 import { FaPlay } from "react-icons/fa";
+import { getImageUrl } from "../../utils/image";
 
 type Props = {
     message: Message;
@@ -21,10 +22,10 @@ export function MessageContent({
     case "IMAGE":
       return (
         <img
-          src={`http://localhost:3000${message.imageUrl}`}
+          src={getImageUrl(message.imageUrl)}
           onClick={() =>
             onImageClick(
-              `http://localhost:3000${message.imageUrl}`
+              getImageUrl(message.imageUrl)
             )
           }
           style={{
@@ -53,7 +54,7 @@ onMouseLeave={(e)=>{
     case "AUDIO":
       return (
         <ChatAudioPlayer
-          src={`http://localhost:3000${message.audioUrl}`}
+          src={getImageUrl(message.audioUrl)}
         />
       );
 
@@ -62,9 +63,9 @@ onMouseLeave={(e)=>{
     <div
       onClick={() =>
         onVideoClick(
-          `http://localhost:3000${message.videoUrl}`,
+          getImageUrl(message.videoUrl),
           message.thumbnailUrl
-            ? `http://localhost:3000${message.thumbnailUrl}`
+            ? getImageUrl(message.thumbnailUrl)
             : null
         )
       }
@@ -84,10 +85,10 @@ onMouseLeave={(e)=>{
         preload="metadata"
         poster={
           message.thumbnailUrl
-            ? `http://localhost:3000${message.thumbnailUrl}`
+            ? getImageUrl(message.thumbnailUrl)
             : undefined
         }
-        src={`http://localhost:3000${message.videoUrl}`}
+        src={getImageUrl(message.videoUrl)}
         style={{
           display: "block",
           width: "100%",
@@ -160,7 +161,7 @@ boxShadow:"var(--shadow-md)",
     case "DOCUMENT":
       return (
         <a
-          href={`http://localhost:3000${message.documentUrl}`}
+          href={getImageUrl(message.documentUrl)}
           target="_blank"
           rel="noreferrer"
           style={{

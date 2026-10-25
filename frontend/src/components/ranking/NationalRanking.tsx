@@ -10,6 +10,7 @@ import styles from "./NationalRanking.module.css";
 import { api } from "../../services/api";
 
 import { useAuth } from "../../auth/AuthProvider";
+import { getImageUrl } from "../../utils/image";
 
 // =========================================
 // TIPO DA LOJA
@@ -101,39 +102,6 @@ const DEFAULT_POSITIONS:
       auctionProduct: null,
     }),
   );
-
-// =========================================
-// API
-// =========================================
-
-const API_URL =
-  import.meta.env.VITE_API_URL ??
-  "http://localhost:3000";
-
-// =========================================
-// AVATAR
-// =========================================
-
-function getAvatarUrl(
-  avatarUrl?: string | null,
-) {
-  if (!avatarUrl) {
-    return null;
-  }
-
-  if (
-    avatarUrl.startsWith("http://") ||
-    avatarUrl.startsWith("https://")
-  ) {
-    return avatarUrl;
-  }
-
-  return `${API_URL}${
-    avatarUrl.startsWith("/")
-      ? ""
-      : "/"
-  }${avatarUrl}`;
-}
 
 // =========================================
 // LABEL DA POSIÇÃO
@@ -710,19 +678,10 @@ export default function NationalRanking({
                       {store.avatarUrl ? (
 
                         <img
-                          src={
-                            getAvatarUrl(
-                              store.avatarUrl,
-                            ) ??
-                            undefined
-                          }
-                          alt={
-                            store.name
-                          }
-                          className={
-                            styles.avatar
-                          }
-                        />
+  src={getImageUrl(store.avatarUrl)}
+  alt={store.name}
+  className={styles.avatar}
+/>
 
                       ) : (
 

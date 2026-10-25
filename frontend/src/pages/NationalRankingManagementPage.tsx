@@ -17,7 +17,7 @@ import {
 
 import ProductImageUploader from "../components/product/ProductImageUploader";
 import ProductImagePreview from "../components/product/ProductImagePreview";
-
+import { getImageUrl } from "../utils/image";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -155,30 +155,6 @@ const EMPTY_POSITIONS: RankingPosition[] =
     }),
   );
 
-const API_URL =
-  import.meta.env.VITE_API_URL ??
-  "http://localhost:3000";
-
-function getAvatarUrl(
-  avatarUrl?: string | null,
-) {
-  if (!avatarUrl) {
-    return null;
-  }
-
-  if (
-    avatarUrl.startsWith("http://") ||
-    avatarUrl.startsWith("https://")
-  ) {
-    return avatarUrl;
-  }
-
-  return `${API_URL}${
-    avatarUrl.startsWith("/")
-      ? ""
-      : "/"
-  }${avatarUrl}`;
-}
 
 function getPositionLabel(
   position: number,
@@ -1575,7 +1551,7 @@ export default function NationalRankingManagementPage() {
                           >
                             {store.avatarUrl ? (
                               <img
-                                src={getAvatarUrl(store.avatarUrl) ?? undefined}
+src={getImageUrl(store.avatarUrl)}
                                 alt={store.name}
                                 className={styles.avatar}
                               />
@@ -1774,7 +1750,7 @@ export default function NationalRankingManagementPage() {
                     >
                       {store.avatarUrl ? (
                         <img
-                          src={getAvatarUrl(store.avatarUrl) ?? undefined}
+src={getImageUrl(store.avatarUrl)}
                           alt={store.name}
                           className={styles.avatar}
                         />

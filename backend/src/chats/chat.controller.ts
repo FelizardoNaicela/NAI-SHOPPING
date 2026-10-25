@@ -15,6 +15,8 @@ import {
 } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { JwtAuthGuard } from '../auth/jwt/jwt-auth.guard';
+import { UPLOADS_DIR } from '../common/storage-paths';
+import * as path from 'path';
 
 import { FileInterceptor, FileFieldsInterceptor } from '@nestjs/platform-express';
 
@@ -101,7 +103,9 @@ async listStoreConversations(@Req() req) {
 @UseInterceptors(
   FileInterceptor('file', {
     storage: diskStorage({
-      destination: './uploads/chat',
+      destination: (_req, _file, cb) => {
+  cb(null, path.join(UPLOADS_DIR, 'chat'));
+},
 
       filename: (_, file, cb) => {
         const unique =
@@ -129,7 +133,9 @@ uploadChatImage(
 @UseInterceptors(
   FileInterceptor('file', {
     storage: diskStorage({
-      destination: './uploads/chat/audio',
+destination: (_req, _file, cb) => {
+  cb(null, path.join(UPLOADS_DIR, 'chat', 'audio'));
+},
 
       filename: (_, file, cb) => {
         const unique =
@@ -168,7 +174,9 @@ uploadChatAudio(
     ],
     {
       storage: diskStorage({
-        destination: "./uploads/chat/video",
+destination: (_req, _file, cb) => {
+  cb(null, path.join(UPLOADS_DIR, 'chat', 'video'));
+},
 
         filename: (_, file, cb) => {
 
@@ -219,7 +227,9 @@ uploadChatVideo(
 @UseInterceptors(
   FileInterceptor('file', {
     storage: diskStorage({
-      destination: './uploads/chat/documents',
+destination: (_req, _file, cb) => {
+  cb(null, path.join(UPLOADS_DIR, 'chat', 'documents'));
+},
 
       filename: (_, file, cb) => {
         const unique =

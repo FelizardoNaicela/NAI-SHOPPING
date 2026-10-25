@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 
 import styles from "./ProfileSidebar.module.css";
+import { getImageUrl } from "../../utils/image";
 
 type Store = {
     id: string;
@@ -69,9 +70,9 @@ export default function ProfileSidebar({
                         profile.avatarUrl ? (
 
                             <img
-                                src={`http://localhost:3000${profile.avatarUrl}`}
-                                alt={profile.name}
-                            />
+    src={getImageUrl(profile.avatarUrl)}
+    alt={profile.name}
+/>
 
                         ) : (
 
@@ -169,9 +170,9 @@ export default function ProfileSidebar({
                                             store.avatarUrl ? (
 
                                                 <img
-                                                    src={`http://localhost:3000${store.avatarUrl}`}
-                                                    alt={store.name}
-                                                />
+    src={getImageUrl(store.avatarUrl)}
+    alt={store.name}
+/>
 
                                             ) : (
 

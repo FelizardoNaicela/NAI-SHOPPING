@@ -19,6 +19,8 @@ import { ChangePasswordDto } from "./dto/change-password.dto";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { diskStorage } from "multer";
 import { extname } from "path";
+import { UPLOADS_DIR } from '../common/storage-paths';
+import * as path from 'path';
 
 @Controller("users")
 export class UsersController {
@@ -95,8 +97,9 @@ async getPublicProfile(
 
             storage: diskStorage({
 
-                destination:
-                    "./uploads/users",
+                destination: (_req, _file, cb) => {
+    cb(null, path.join(UPLOADS_DIR, 'users'));
+},
 
                 filename: (
 

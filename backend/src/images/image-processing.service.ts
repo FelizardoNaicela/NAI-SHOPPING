@@ -2,10 +2,11 @@ import { Injectable } from '@nestjs/common';
 import sharp from 'sharp';
 import * as fs from 'fs';
 import * as path from 'path';
+import { UPLOADS_DIR } from '../common/storage-paths';
 
 @Injectable()
 export class ImageProcessingService {
-  private basePath = 'uploads';
+ private basePath = UPLOADS_DIR;
 
   async processImage(filename: string) {
     const originalPath = path.join(this.basePath, filename);
@@ -15,12 +16,12 @@ export class ImageProcessingService {
     const name = path.parse(filename).name;
 
     const paths = {
-      large: `uploads/large/${name}.jpg`,
-      medium: `uploads/medium/${name}.jpg`,
-      small: `uploads/small/${name}.jpg`,
-      thumb: `uploads/thumb/${name}.jpg`,
-      webp: `uploads/webp/${name}.webp`,
-    };
+  large: path.join(this.basePath, 'large', `${name}.jpg`),
+  medium: path.join(this.basePath, 'medium', `${name}.jpg`),
+  small: path.join(this.basePath, 'small', `${name}.jpg`),
+  thumb: path.join(this.basePath, 'thumb', `${name}.jpg`),
+  webp: path.join(this.basePath, 'webp', `${name}.webp`),
+};
 
     // garantir pastas
     await this.ensureFolders();
@@ -57,31 +58,31 @@ export class ImageProcessingService {
     const stats = fs.statSync(originalPath);
 
     return {
-      originalUrl: `/uploads/${filename}`,
-      largeUrl: `/${paths.large}`,
-      mediumUrl: `/${paths.medium}`,
-      smallUrl: `/${paths.small}`,
-      thumbUrl: `/${paths.thumb}`,
-      webpUrl: `/${paths.webp}`,
-      width: metadata.width ?? null,
-      height: metadata.height ?? null,
-      sizeKb: Math.round(stats.size / 1024),
-    };
+  originalUrl: `/uploads/${filename}`,
+  largeUrl: `/uploads/large/${name}.jpg`,
+  mediumUrl: `/uploads/medium/${name}.jpg`,
+  smallUrl: `/uploads/small/${name}.jpg`,
+  thumbUrl: `/uploads/thumb/${name}.jpg`,
+  webpUrl: `/uploads/webp/${name}.webp`,
+  width: metadata.width ?? null,
+  height: metadata.height ?? null,
+  sizeKb: Math.round(stats.size / 1024),
+};
   }
 
   private async ensureFolders() {
-    const dirs = [
-      'uploads/large',
-      'uploads/medium',
-      'uploads/small',
-      'uploads/thumb',
-      'uploads/webp',
-    ];
+  const dirs = [
+    path.join(this.basePath, 'large'),
+    path.join(this.basePath, 'medium'),
+    path.join(this.basePath, 'small'),
+    path.join(this.basePath, 'thumb'),
+    path.join(this.basePath, 'webp'),
+  ];
 
-    for (const dir of dirs) {
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-      }
+  for (const dir of dirs) {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
     }
   }
+}
 }

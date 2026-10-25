@@ -784,16 +784,14 @@ export default function NationalRankingAuctionPage() {
     }
 
 
-    const socket: Socket =
-      io(
-        import.meta.env.VITE_SOCKET_URL ||
-        "http://localhost:3000",
-        {
-          transports: [
-            "websocket",
-          ],
-        },
-      );
+    const socket: Socket = io(
+  import.meta.env.VITE_SOCKET_URL ||
+    import.meta.env.VITE_API_URL ||
+    "http://localhost:3000",
+  {
+    transports: ["websocket"],
+  },
+);
 
 
     socket.emit(

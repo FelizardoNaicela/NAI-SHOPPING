@@ -21,9 +21,11 @@ import {
 
 import {
   basename,
+  isAbsolute,
   join,
   relative,
   resolve,
+  sep,
 } from 'path';
 
 import {
@@ -41,6 +43,10 @@ import {
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
+import {
+  LEGAL_EVIDENCE_DIR,
+  UPLOADS_DIR,
+} from '../common/storage-paths';
 
 @Injectable()
 export class LegalEvidenceService {
@@ -997,11 +1003,7 @@ async cleanupPreservedPhysicalFiles(
       );
     }
 
-    const evidenceRoot =
-      resolve(
-        process.cwd(),
-        'legal-evidence',
-      );
+    const evidenceRoot = LEGAL_EVIDENCE_DIR;
 
     const investigationDirectory =
       join(
@@ -1029,11 +1031,11 @@ async cleanupPreservedPhysicalFiles(
         encryptedFileName,
       );
 
-    const relativeDestination =
-      relative(
-        process.cwd(),
-        destinationPath,
-      ).replace(/\\/g, '/');
+   const relativeDestination =
+  relative(
+    LEGAL_EVIDENCE_DIR,
+    destinationPath,
+  ).replace(/\\/g, '/');
 
    const encryption = await this.encryptFile(
   sourcePath,
@@ -1138,50 +1140,45 @@ try {
   }
 }
 
-  private resolveAllowedChatFile(
-    sourceUrl: string,
-  ): string | null {
-    const normalized =
-      sourceUrl.trim();
+private resolveAllowedChatFile(
+  sourceUrl: string,
+): string | null {
+  const normalized = sourceUrl.trim();
 
-    if (!normalized.startsWith('/uploads/chat/')) {
-      return null;
-    }
-
-    const relativePath =
-      normalized
-        .replace(/^\/+/, '');
-
-    const uploadsRoot =
-      resolve(
-        process.cwd(),
-        'uploads',
-        'chat',
-      );
-
-    const candidate =
-      resolve(
-        process.cwd(),
-        relativePath,
-      );
-
-    const relativeToRoot =
-      relative(
-        uploadsRoot,
-        candidate,
-      );
-
-    if (
-      relativeToRoot.startsWith('..') ||
-      relativeToRoot.includes('..\\') ||
-      relativeToRoot.includes('../') ||
-      relativeToRoot === ''
-    ) {
-      return null;
-    }
-
-    return candidate;
+  if (!normalized.startsWith('/uploads/chat/')) {
+    return null;
   }
+
+  const relativePath = normalized.replace(/^\/+/, '');
+
+  const uploadsRoot = resolve(
+    UPLOADS_DIR,
+    'chat',
+  );
+
+  const candidate = resolve(
+    UPLOADS_DIR,
+    '..',
+    relativePath,
+  );
+
+  const relativeToRoot = relative(
+    uploadsRoot,
+    candidate,
+  );
+
+  if (
+    relativeToRoot.startsWith('..') ||
+    relativeToRoot.includes('..\\') ||
+    relativeToRoot.includes('../') ||
+    relativeToRoot === ''
+  ) {
+    return null;
+  }
+
+  return candidate;
+}
+
 
 
 private async encryptFile(
@@ -1290,37 +1287,40 @@ private async encryptFile(
       return;
     }
 
-    const evidenceRoot =
-      resolve(
-        process.cwd(),
-        'legal-evidence',
-      );
 
-    const candidate =
-      resolve(
-        process.cwd(),
-        metadata.path,
-      );
+const normalizedPath = metadata.path.replace(/\\/g, '/');
 
-    const relativeToEvidenceRoot =
-      relative(
-        evidenceRoot,
-        candidate,
-      );
+const isLegacyPath =
+  normalizedPath === 'legal-evidence' ||
+  normalizedPath.startsWith('legal-evidence/');
+
+const evidenceRoot = isLegacyPath
+  ? resolve(process.cwd(), 'legal-evidence')
+  : LEGAL_EVIDENCE_DIR;
+
+const candidate = isLegacyPath
+  ? resolve(process.cwd(), metadata.path)
+  : resolve(LEGAL_EVIDENCE_DIR, metadata.path);
+
+const relativeToEvidenceRoot = relative(
+  evidenceRoot,
+  candidate,
+);
+
 
     /*
      * Impede que uma referência adulterada
      * faça o processo apagar um arquivo fora
      * de legal-evidence/.
      */
-    if (
-      relativeToEvidenceRoot.startsWith('..') ||
-      relativeToEvidenceRoot.includes('..\\') ||
-      relativeToEvidenceRoot.includes('../') ||
-      relativeToEvidenceRoot === ''
-    ) {
-      return;
-    }
+   if (
+  isAbsolute(relativeToEvidenceRoot) ||
+  relativeToEvidenceRoot === '..' ||
+  relativeToEvidenceRoot.startsWith(`..${sep}`) ||
+  relativeToEvidenceRoot === ''
+) {
+  return;
+}
 
     await rm(
       candidate,
@@ -1894,37 +1894,38 @@ const originalSize =
     ) {
       throw new InternalServerErrorException(
         'O tipo da mídia não corresponde à evidência preservada.',
-      );
-    }
+      );}
 
-    const evidenceRoot =
-      resolve(
-        process.cwd(),
-        'legal-evidence',
-      );
+const normalizedPath = metadata.path.replace(/\\/g, '/');
 
-    const physicalPath =
-      resolve(
-        process.cwd(),
-        metadata.path,
-      );
+const isLegacyPath =
+  normalizedPath === 'legal-evidence' ||
+  normalizedPath.startsWith('legal-evidence/');
 
-    const relativeToEvidenceRoot =
-      relative(
-        evidenceRoot,
-        physicalPath,
-      );
+const evidenceRoot = isLegacyPath
+  ? resolve(process.cwd(), 'legal-evidence')
+  : LEGAL_EVIDENCE_DIR;
+
+const physicalPath = isLegacyPath
+  ? resolve(process.cwd(), metadata.path)
+  : resolve(LEGAL_EVIDENCE_DIR, metadata.path);
+
+const relativeToEvidenceRoot = relative(
+  evidenceRoot,
+  physicalPath,
+);
+
 
     if (
-      relativeToEvidenceRoot.startsWith('..') ||
-      relativeToEvidenceRoot.includes('..\\') ||
-      relativeToEvidenceRoot.includes('../') ||
-      relativeToEvidenceRoot === ''
-    ) {
-      throw new InternalServerErrorException(
-        'A referência física da evidência está fora da área protegida.',
-      );
-    }
+  isAbsolute(relativeToEvidenceRoot) ||
+  relativeToEvidenceRoot === '..' ||
+  relativeToEvidenceRoot.startsWith(`..${sep}`) ||
+  relativeToEvidenceRoot === ''
+) {
+  throw new InternalServerErrorException(
+    'A referência física da evidência está fora da área protegida.',
+  );
+}
 
     let physicalStat;
 

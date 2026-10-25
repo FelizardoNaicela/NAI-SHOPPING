@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { getImageUrl } from '../../utils/image';
 import type {
   Product,
   Post,
@@ -74,14 +75,14 @@ onMouseLeave={(e)=>{
 
     {cover && (
     <img
-        src={`http://localhost:3000${cover}`}
-              style={{
-                width: 54,
-                height: 54,
-                borderRadius: 10,
-                objectFit: 'cover',
-              }}
-            />
+    src={getImageUrl(cover)}
+    style={{
+      width: 54,
+      height: 54,
+      borderRadius: 10,
+      objectFit: 'cover',
+    }}
+/>
           )}
 
           <div>

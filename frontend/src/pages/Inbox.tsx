@@ -8,6 +8,7 @@ import ConversationList, {
 import styles from "./Inbox.module.css";
 import SiteHeader from "../components/header/SiteHeader";
 import FloatingDrawers from "../components/drawer/FloatingDrawers";
+import { getImageUrl } from "../utils/image";
 
 type ConversationRaw = {
   id: string;
@@ -100,25 +101,24 @@ export function Inbox() {
         }
 
         const normalized: ConversationUI[] = res.data.map(
-          (conv: ConversationRaw) => {
-            const BASE_URL = "http://localhost:3000";
-            const isStoreMode = mode === "store";
-            return {
+  (conv: ConversationRaw) => {
+    const isStoreMode = mode === "store";
+    return {
   id: conv.id,
 
   name: isStoreMode
     ? conv.user?.name || "Usuário"
     : conv.store?.name || "Loja",
 
-  avatar: isStoreMode
+ avatar: isStoreMode
   ? (
       conv.user?.avatarUrl
-        ? `${BASE_URL}${conv.user.avatarUrl}`
+        ? getImageUrl(conv.user.avatarUrl)
         : undefined
     )
   : (
       conv.store?.avatarUrl
-        ? `${BASE_URL}${conv.store.avatarUrl}`
+        ? getImageUrl(conv.store.avatarUrl)
         : undefined
     ),
 
