@@ -6,8 +6,6 @@ import { getSocket } from "../socket/socket";
 import ConversationList, {
 } from "../components/conversation/ConversationList";
 import styles from "./Inbox.module.css";
-import SiteHeader from "../components/header/SiteHeader";
-import FloatingDrawers from "../components/drawer/FloatingDrawers";
 import { getImageUrl } from "../utils/image";
 
 type ConversationRaw = {
@@ -341,10 +339,6 @@ if (activeId) {
   return (
 
     <>
-  <SiteHeader />
-
-  <FloatingDrawers />
-
     <div
     className={`${styles.wrapper}
     ${

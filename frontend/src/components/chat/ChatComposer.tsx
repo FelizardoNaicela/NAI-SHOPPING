@@ -250,6 +250,7 @@ backdropFilter:"blur(8px)",
     alignItems: "center",
     gap: 10,
     minHeight: 44,
+    fontSize: 16,
   }}
 >
   <button
