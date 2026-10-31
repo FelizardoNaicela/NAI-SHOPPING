@@ -32,6 +32,7 @@ import NationalRankingManagementPage from "./pages/NationalRankingManagementPage
 import NationalRankingAuctionsPage from "./pages/NationalRankingAuctionsPage";
 import NationalRankingAuctionPage from "./pages/NationalRankingAuctionPage";
 import LegalDashboardPage from "./pages/Legal/LegalDashboardPage";
+import VerifyEmailPage from "./pages/VerifyEmailPage";
 
 function App() {
   return (
@@ -138,6 +139,8 @@ function App() {
     path="/post/:postId"
     element={<PostPage />}
 />
+
+<Route path="/verify-email" element={<VerifyEmailPage />} />
 
             <Route
     path="/profile"

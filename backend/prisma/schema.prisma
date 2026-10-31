@@ -13,6 +13,15 @@ model User {
   role      UserRole @default(USER)
   createdAt DateTime @default(now())
 
+  // Verificação do endereço de email
+  emailVerifiedAt            DateTime?
+  emailVerificationTokenHash String?   @unique
+  emailVerificationExpiresAt DateTime?
+
+  // Recuperação da senha
+  passwordResetTokenHash String?   @unique
+  passwordResetExpiresAt DateTime?
+
   countryCode  String
   name         String?
   passwordHash String
@@ -1262,4 +1271,32 @@ enum StoreType {
   BOOKS
   SERVICES
   OTHER
+}
+
+model PendingRegistration {
+  id String @id @default(uuid())
+
+  email        String  @unique
+  passwordHash String
+  name         String?
+  phone        String?
+  countryCode  String
+  region       String?
+
+  // Confirmação por link
+  verificationTokenHash String @unique
+
+  // Confirmação por código de seis dígitos
+  verificationCodeHash String
+  verificationCodeSalt String
+
+  // Segurança e validade
+  attempts   Int      @default(0)
+  expiresAt  DateTime
+  lastSentAt DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([expiresAt])
 }
