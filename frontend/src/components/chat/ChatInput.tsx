@@ -256,13 +256,15 @@ color:"var(--text)"
   style={{ display: "none" }}
   ref={documentInputRef}
   onChange={(e) => {
-    const file =
-      e.target.files?.[0];
+  const file = e.target.files?.[0];
 
-    if (!file) return;
+  if (!file) return;
 
-    uploadDocument(file);
-  }}
+  uploadDocument(file);
+
+  // Permite selecionar novamente o mesmo ficheiro.
+  e.target.value = "";
+}}
 />
 
         {!recording && (

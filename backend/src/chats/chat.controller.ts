@@ -23,6 +23,7 @@ import { FileInterceptor, FileFieldsInterceptor } from '@nestjs/platform-express
 import { diskStorage } from 'multer';
 
 import { extname } from 'path';
+const MAX_CHAT_FILE_SIZE = 20 * 1024 * 1024;
 
 @Controller('chat')
 @UseGuards(JwtAuthGuard)
@@ -102,24 +103,21 @@ async listStoreConversations(@Req() req) {
 @Post('upload')
 @UseInterceptors(
   FileInterceptor('file', {
-    storage: diskStorage({
-      destination: (_req, _file, cb) => {
-  cb(null, path.join(UPLOADS_DIR, 'chat'));
-},
+  storage: diskStorage({
+    destination: (_req, _file, cb) => {
+      cb(null, path.join(UPLOADS_DIR, 'chat'));
+    },
+    filename: (_, file, cb) => {
+      const unique =
+        Date.now() + '-' + Math.round(Math.random() * 1e9);
 
-      filename: (_, file, cb) => {
-        const unique =
-          Date.now() +
-          '-' +
-          Math.round(Math.random() * 1e9);
-
-        cb(
-          null,
-          `${unique}${extname(file.originalname)}`,
-        );
-      },
-    }),
+      cb(null, `${unique}${extname(file.originalname)}`);
+    },
   }),
+  limits: {
+    fileSize: MAX_CHAT_FILE_SIZE,
+  },
+}),
 )
 uploadChatImage(
   @UploadedFile() file: Express.Multer.File,
@@ -149,6 +147,9 @@ destination: (_req, _file, cb) => {
         );
       },
     }),
+limits: {
+  fileSize: MAX_CHAT_FILE_SIZE,
+},
   }),
 )
 uploadChatAudio(
@@ -193,6 +194,9 @@ destination: (_req, _file, cb) => {
           );
         },
       }),
+      limits: {
+  fileSize: MAX_CHAT_FILE_SIZE,
+},
     },
   ),
 )
@@ -243,6 +247,9 @@ destination: (_req, _file, cb) => {
         );
       },
     }),
+    limits: {
+  fileSize: MAX_CHAT_FILE_SIZE,
+},
   }),
 )
 uploadChatDocument(
@@ -250,7 +257,10 @@ uploadChatDocument(
 ) {
   return {
     url: `/uploads/chat/documents/${file.filename}`,
-    originalName: file.originalname,
+    originalName: Buffer.from(
+  file.originalname,
+  "latin1"
+).toString("utf8"),
   };
 }
 

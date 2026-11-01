@@ -32,14 +32,14 @@ export default function CategoryPage() {
   const [nextCursor, setNextCursor] =
     useState<string | null>(null);
 
-  const [filters, setFilters] =
-    useState({
-      country: "MZ",
-      region: "",
-      time: "all",
-      sort: "recent",
-      type: "",
-    });
+  const [filters, setFilters] = useState({
+  country: "MZ",
+  region: "",
+  locationKeyword: "",
+  time: "all",
+  sort: "recent",
+  type: "",
+});
 
     const [premiumProduct, setPremiumProduct] =
   useState<any | null>(null);
@@ -308,9 +308,10 @@ export default function CategoryPage() {
       </h2>
 
       <MarketplaceFilters
-        value={filters}
-        onChange={setFilters}
-      />
+  value={filters}
+  onChange={setFilters}
+  showLocationKeyword={false}
+/>
 
       {items.length === 0 && (
         <p

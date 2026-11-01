@@ -21,6 +21,8 @@ interface Props {
     createdAt?: string;
     verificationType?: "BASIC" | "PREMIUM";
     type?: string | null;
+    locationUrl?: string;
+locationKeyword?: string;
   };
 
   stats: {
@@ -50,6 +52,17 @@ export default function StoreHeader({ store, stats, viewer }: Props) {
 
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+
+  const [description, setDescription] = useState(store.description || "");
+const [locationUrl, setLocationUrl] = useState(
+  store.locationUrl || ""
+);
+const [locationKeyword, setLocationKeyword] = useState(
+  store.locationKeyword || ""
+);
+
+const [editingInfo, setEditingInfo] = useState(false);
+const [savingInfo, setSavingInfo] = useState(false);
 
   async function toggleFollow() {
 
@@ -124,6 +137,44 @@ const upload = await fetch(`${API_URL}/upload/images`, {
 
     setUploading(false);
 
+  }
+}
+
+async function saveStoreInfo() {
+  if (savingInfo) return;
+
+  try {
+    setSavingInfo(true);
+
+    const token = localStorage.getItem("token");
+
+    const response = await fetch(`${API_URL}/stores/${store.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+  description,
+  locationUrl,
+  locationKeyword,
+}),
+    });
+
+    if (!response.ok) {
+      throw new Error("Não foi possível atualizar as informações da banca.");
+    }
+
+    setEditingInfo(false);
+    window.location.reload();
+  } catch (error) {
+    alert(
+      error instanceof Error
+        ? error.message
+        : "Erro ao guardar as informações."
+    );
+  } finally {
+    setSavingInfo(false);
   }
 }
 
@@ -295,17 +346,183 @@ alignItems: "flex-start",
   </div>
 )}
 
-          {store.description && (
-            <div style={{ marginTop: 6, color:"var(--text-soft)" }}>
-              {store.description}
-            </div>
-          )}
+          {editingInfo ? (
+  <div
+    style={{
+      marginTop: 14,
+      display: "flex",
+      flexDirection: "column",
+      gap: 10,
+    }}
+  >
+    <label>
+      <div style={{ fontSize: 13, marginBottom: 5 }}>
+        Descrição da banca
+      </div>
 
-          {(store.region || store.countryCode) && (
-            <div style={{ marginTop: 6, fontSize: 13, color:"var(--text-soft)" }}>
-              {store.region} {store.countryCode}
-            </div>
-          )}
+      <textarea
+        value={description}
+        onChange={e => setDescription(e.target.value)}
+        maxLength={1000}
+        placeholder="Descreve os produtos ou serviços da tua banca..."
+        rows={3}
+        style={{
+          width: "100%",
+          padding: 10,
+          borderRadius: 8,
+          border: "1px solid var(--border)",
+          background: "var(--surface)",
+          color: "var(--text)",
+          resize: "vertical",
+        }}
+      />
+    </label>
+
+    <label>
+  <div style={{ fontSize: 13, marginBottom: 5 }}>
+    Link da localização no Google Maps
+  </div>
+
+  <input
+    type="url"
+    value={locationUrl}
+    onChange={e => setLocationUrl(e.target.value)}
+    maxLength={1000}
+    placeholder="https://maps.app.goo.gl/..."
+    style={{
+      width: "100%",
+      padding: 10,
+      borderRadius: 8,
+      border: "1px solid var(--border)",
+      background: "var(--surface)",
+      color: "var(--text)",
+    }}
+  />
+</label>
+
+    <label>
+      <div style={{ fontSize: 13, marginBottom: 5 }}>
+        Palavra-chave da localização
+      </div>
+
+      <input
+        type="text"
+        value={locationKeyword}
+        onChange={e => setLocationKeyword(e.target.value)}
+        maxLength={150}
+        placeholder="Ex.: Mercado Central"
+        style={{
+          width: "100%",
+          padding: 10,
+          borderRadius: 8,
+          border: "1px solid var(--border)",
+          background: "var(--surface)",
+          color: "var(--text)",
+        }}
+      />
+    </label>
+
+    <div style={{ display: "flex", gap: 8 }}>
+      <button
+        type="button"
+        onClick={saveStoreInfo}
+        disabled={savingInfo}
+        style={{
+          padding: "9px 15px",
+          border: 0,
+          borderRadius: 8,
+          background: "var(--primary)",
+          color: "#fff",
+          cursor: "pointer",
+        }}
+      >
+        {savingInfo ? "A guardar..." : "Guardar"}
+      </button>
+
+      <button
+        type="button"
+        onClick={() => {
+          setDescription(store.description || "");
+setLocationUrl(store.locationUrl || "");
+          setLocationKeyword(store.locationKeyword || "");
+          setEditingInfo(false);
+        }}
+        disabled={savingInfo}
+        style={{
+          padding: "9px 15px",
+          border: "1px solid var(--border)",
+          borderRadius: 8,
+          background: "var(--surface)",
+          color: "var(--text)",
+          cursor: "pointer",
+        }}
+      >
+        Cancelar
+      </button>
+    </div>
+  </div>
+) : (
+  <>
+    {description && (
+      <div style={{ marginTop: 6, color: "var(--text-soft)" }}>
+        {description}
+      </div>
+    )}
+
+    {locationUrl && (
+  <div style={{ marginTop: 8 }}>
+    <a
+      href={locationUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 6,
+        color: "var(--primary)",
+        fontSize: 13,
+        fontWeight: 600,
+        textDecoration: "none",
+      }}
+    >
+      <span>📍</span>
+      Ver localização no mapa
+    </a>
+  </div>
+)}
+
+    {(store.region || store.countryCode) && (
+      <div
+        style={{
+          marginTop: 6,
+          fontSize: 13,
+          color: "var(--text-soft)",
+        }}
+      >
+        {store.region} {store.countryCode}
+      </div>
+    )}
+  </>
+)}
+
+{viewer.isOwner && !editingInfo && (
+  <button
+    type="button"
+    onClick={() => setEditingInfo(true)}
+    style={{
+      marginTop: 10,
+      padding: "8px 12px",
+      border: "1px solid var(--border)",
+      borderRadius: 8,
+      background: "var(--surface)",
+      color: "var(--text)",
+      cursor: "pointer",
+      fontSize: 13,
+    }}
+  >
+    Editar informações
+  </button>
+)}
 
           {store.createdAt && (
             <div style={{ marginTop: 4, fontSize: 12, color:"var(--text-soft)" }}>

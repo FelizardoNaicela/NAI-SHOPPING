@@ -61,17 +61,19 @@ searchGlobal(
   @Query("cursor") cursor?: string,
   @Query("limit") limit = "20",
   @Query("type") type?: string,
+  @Query("locationKeyword") locationKeyword?: string,
 ) {
   return this.storesService.globalSearch({
-  query: q,
-  country,
-  region,
-  time,
-  sort,
-  cursor,
-  limit: Number(limit),
-  type,
-});
+    query: q,
+    country,
+    region,
+    time,
+    sort,
+    cursor,
+    limit: Number(limit),
+    type,
+    locationKeyword,
+  });
 }
 
 @Get("search/suggestions")

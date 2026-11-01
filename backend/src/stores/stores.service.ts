@@ -275,6 +275,9 @@ export class StoresService {
         description:
           store.description,
 
+          locationUrl: store.locationUrl,
+locationKeyword: store.locationKeyword,
+
         // ===================================
         // VERIFICAÇÃO
         // ===================================
@@ -445,21 +448,59 @@ export class StoresService {
  async updateStore(
   storeId: string,
   userId: string,
-  data: { avatarUrl?: string; bannerUrl?: string; type?: StoreType },
+  data: {
+  avatarUrl?: string;
+  bannerUrl?: string;
+  type?: StoreType;
+  description?: string;
+  locationReference?: string;
+  locationKeyword?: string;
+  locationUrl?: string;
+},
 ) {
   const store = await this.prisma.store.findUnique({
     where: { id: storeId },
     select: { ownerId: true },
   });
 
-  if (!store) throw new BadRequestException("Banca não encontrada");
-  if (store.ownerId !== userId) throw new BadRequestException("Sem permissão");
+  if (!store) {
+    throw new BadRequestException("Banca não encontrada");
+  }
 
-  const { avatarUrl, bannerUrl, type } = data;
+  if (store.ownerId !== userId) {
+    throw new BadRequestException("Sem permissão");
+  }
 
   return this.prisma.store.update({
     where: { id: storeId },
-    data: { avatarUrl, bannerUrl, type },
+    data: {
+      ...(data.avatarUrl !== undefined
+        ? { avatarUrl: data.avatarUrl }
+        : {}),
+
+      ...(data.bannerUrl !== undefined
+        ? { bannerUrl: data.bannerUrl }
+        : {}),
+
+      ...(data.type !== undefined
+        ? { type: data.type }
+        : {}),
+
+      ...(data.description !== undefined
+        ? { description: data.description.trim() || null }
+        : {}),
+
+      ...(data.locationReference !== undefined
+        ? { locationReference: data.locationReference.trim() || null }
+        : {}),
+
+      ...(data.locationKeyword !== undefined
+        ? { locationKeyword: data.locationKeyword.trim() || null }
+        : {}),
+        ...(data.locationUrl !== undefined
+  ? { locationUrl: data.locationUrl.trim() || null }
+  : {}),
+    },
   });
 }
 
@@ -572,6 +613,7 @@ export class StoresService {
   cursor,
   limit,
   type,
+  locationKeyword,
 }: {
   query: string;
   country?: string;
@@ -581,6 +623,7 @@ export class StoresService {
   cursor?: string;
   limit: number;
   type?: string;
+  locationKeyword?: string;
 }) {
   const now = new Date();
 
@@ -589,6 +632,29 @@ export class StoresService {
     ? (type as StoreType)
     : undefined;
 
+   const locationStoreFilter: Prisma.StoreWhereInput =
+  locationKeyword?.trim()
+    ? {
+        AND: [
+          {
+            OR: [
+              {
+                locationKeyword: {
+                  contains: locationKeyword.trim(),
+                  mode: "insensitive",
+                },
+              },
+              {
+                locationReference: {
+                  contains: locationKeyword.trim(),
+                  mode: "insensitive",
+                },
+              },
+            ],
+          },
+        ],
+      }
+    : {};
     // =======================================
     // FILTROS DOS PRODUTOS
     // =======================================
@@ -599,40 +665,36 @@ export class StoresService {
       isPublished: true,
 
       store: {
-        isActive: true,
+  isActive: true,
 
-          ...(storeType ? { type: storeType } : {}),
+  ...(storeType ? { type: storeType } : {}),
 
+  ...(country
+    ? {
+        countryCode: country,
+      }
+    : {}),
 
-        ...(country
-          ? {
-              countryCode:
-                country,
-            }
-          : {}),
+  ...(region
+    ? {
+        OR: [
+          { region },
+          {
+            regions: {
+              some: {
+                region,
+              },
+            },
+          },
+          {
+            region: null,
+          },
+        ],
+      }
+    : {}),
 
-        ...(region
-          ? {
-              OR: [
-                {
-                  region,
-                },
-
-                {
-                  regions: {
-                    some: {
-                      region,
-                    },
-                  },
-                },
-
-                {
-                  region: null,
-                },
-              ],
-            }
-          : {}),
-      },
+  ...locationStoreFilter,
+},
     };
 
     const productAnd:
@@ -853,53 +915,37 @@ export class StoresService {
           "NORMAL",
 
         store: {
-          isActive:
-            true,
+  isActive: true,
 
-              ...(storeType ? { type: storeType } : {}),
+  ...(storeType ? { type: storeType } : {}),
 
+  verified: true,
 
-          verified:
-            true,
+  verificationType: "PREMIUM",
 
-          verificationType:
-            "PREMIUM",
+  ...(country
+    ? {
+        countryCode: country,
+      }
+    : {}),
 
-          ...(country
-            ? {
-                countryCode:
-                  country,
-              }
-            : {}),
+  ...(region
+    ? {
+        OR: [
+          { region },
+          {
+            regions: {
+              some: {
+                region,
+              },
+            },
+          },
+        ],
+      }
+    : {}),
 
-          // =================================
-          // REGIÃO DO PREMIUM
-          // =================================
-          //
-          // Premium precisa estar realmente
-          // na região escolhida.
-          //
-          // Não usamos region:null aqui.
-          // =================================
-
-          ...(region
-            ? {
-                OR: [
-                  {
-                    region,
-                  },
-
-                  {
-                    regions: {
-                      some: {
-                        region,
-                      },
-                    },
-                  },
-                ],
-              }
-            : {}),
-        },
+  ...locationStoreFilter,
+},
 
         ...(productAnd.length
           ? {
@@ -1139,6 +1185,25 @@ export class StoresService {
         ],
       });
     }
+
+    if (locationKeyword?.trim()) {
+  storeAnd.push({
+    OR: [
+      {
+        locationKeyword: {
+          contains: locationKeyword.trim(),
+          mode: "insensitive",
+        },
+      },
+      {
+        locationReference: {
+          contains: locationKeyword.trim(),
+          mode: "insensitive",
+        },
+      },
+    ],
+  });
+}
 
     // =======================================
     // FILTRO DE DATA DAS BANCAS

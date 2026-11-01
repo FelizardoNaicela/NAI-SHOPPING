@@ -1,130 +1,162 @@
 import { useState, useEffect } from "react";
-import { REGIONS} from "../shared/regions";
-
+import { REGIONS } from "../shared/regions";
 
 type Props = {
   onChange: () => void;
 };
 
-export default function RegionSelector({ onChange }: Props) {
-
+ export default function RegionSelector({ onChange }: Props) {
   const [country, setCountry] = useState(
-    localStorage.getItem("feed_country") || "MZ"
+    () => localStorage.getItem("feed_country") || "MZ"
   );
 
   const [region, setRegion] = useState(
-    localStorage.getItem("feed_region") || ""
+    () => localStorage.getItem("feed_region") || ""
   );
 
-  const [availableRegions, setAvailableRegions] = useState<string[]>([]);
+  const [collapsed, setCollapsed] = useState(true);
 
-  useEffect(() => {
-setAvailableRegions(REGIONS[country as keyof typeof REGIONS] || []);
-    setRegion("");
-  }, [country]);
+  const availableRegions =
+    REGIONS[country as keyof typeof REGIONS] || [];
 
-  useEffect(() => {
-
+useEffect(() => {
     localStorage.setItem("feed_country", country);
 
     if (region === "") {
-        localStorage.removeItem("feed_region");
+      localStorage.removeItem("feed_region");
     } else {
-        localStorage.setItem("feed_region", region);
+      localStorage.setItem("feed_region", region);
     }
 
     onChange();
+  }, [country, region]);
 
-}, [country, region]);
-
- const handleCountryChange = (
+  function handleCountryChange(
     e: React.ChangeEvent<HTMLSelectElement>
-) => {
-
-    const newCountry = e.target.value;
-
-    setCountry(newCountry);
-
-    setAvailableRegions(
-        REGIONS[newCountry as keyof typeof REGIONS] || []
-    );
-
+  ) {
+    setCountry(e.target.value);
     setRegion("");
+  }
 
-};
-
-const handleRegionChange = (
+  function handleRegionChange(
     e: React.ChangeEvent<HTMLSelectElement>
-) => {
-
+  ) {
     setRegion(e.target.value);
-
-};
+  }
 
   return (
     <div style={styles.container}>
-      <div style={styles.row}>
+      <button
+        type="button"
+        onClick={() => setCollapsed(prev => !prev)}
+        aria-expanded={!collapsed}
+        style={styles.toggle}
+      >
+        <span style={styles.toggleTitle}>
+          <span>☷</span>
+          Filtrar publicações
+        </span>
 
-        <select
-  value={country}
-  onChange={handleCountryChange}
-  style={styles.select}
->
-          <option value="MZ">Moçambique</option>
-          <option value="BR">Brasil</option>
-          <option value="PT">Portugal</option>
-        </select>
+        <span style={styles.toggleRight}>
+          {collapsed ? "Mostrar" : "Ocultar"}
+          <span style={styles.arrow}>
+            {collapsed ? "⌄" : "⌃"}
+          </span>
+        </span>
+      </button>
 
-        <select
-  value={region}
-  onChange={handleRegionChange}
-  style={styles.select}
->
-          <option value="">Todas províncias</option>
-          {availableRegions.map((r) => (
-            <option key={r} value={r}>{r}</option>
-          ))}
-        </select>
+      {!collapsed && (
+        <div style={styles.row}>
+          <select
+            value={country}
+            onChange={handleCountryChange}
+            style={styles.select}
+          >
+            <option value="MZ">Moçambique</option>
+            <option value="BR">Brasil</option>
+            <option value="PT">Portugal</option>
+          </select>
 
-      </div>
+          <select
+            value={region}
+            onChange={handleRegionChange}
+            style={styles.select}
+          >
+            <option value="">Todas províncias</option>
 
+            {availableRegions.map(r => (
+              <option key={r} value={r}>
+                {r}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
     </div>
   );
 }
 
-const styles = {
+const styles: Record<string, React.CSSProperties> = {
   container: {
-    padding: 16,
+    padding: 12,
     borderRadius: 12,
-    background: "#1e1e1e",
-    color: "white",
+    background: "var(--surface)",
+    color: "var(--text)",
+    border: "1px solid var(--border)",
     marginBottom: 20,
   },
-  header: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 10,
+
+  toggle: {
+    width: "100%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    padding: "5px 3px",
+    border: "none",
+    background: "transparent",
+    color: "var(--text)",
+    cursor: "pointer",
+    fontSize: 14,
+    fontWeight: 600,
   },
+
+  toggleTitle: {
+    display: "flex",
+    alignItems: "center",
+    gap: 9,
+  },
+
+  toggleRight: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    color: "var(--text-secondary)",
+    fontSize: 13,
+    fontWeight: 400,
+  },
+
+  arrow: {
+    fontSize: 18,
+  },
+
   row: {
-  display: "flex",
-  gap: 10,
-  width: "100%",
-  flexWrap: "wrap" as const,
-},
-  select: {
-  flex: "1 1 160px",
-  minWidth: 0,
-  width: "100%",
-  padding: "10px 12px",
-  borderRadius: 8,
-  border: "1px solid var(--border)",
-  background: "var(--surface)",
-  color: "var(--text)",
-  boxSizing: "border-box" as const,
-},
-  buttons: {
     display: "flex",
     gap: 10,
-    marginTop: 12,
+    width: "100%",
+    flexWrap: "wrap",
+    marginTop: 14,
+  },
+
+  select: {
+    flex: "1 1 160px",
+    minWidth: 0,
+    width: "100%",
+    padding: "10px 12px",
+    borderRadius: 8,
+    border: "1px solid var(--border)",
+    background: "var(--surface-secondary)",
+    color: "var(--text)",
+    boxSizing: "border-box",
   },
 };

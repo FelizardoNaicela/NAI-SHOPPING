@@ -79,6 +79,10 @@ model Store {
   ratingAverage Float    @default(0)
   ratingCount   Int      @default(0)
 
+  locationReference String?
+  locationKeyword   String?
+  locationUrl       String?
+
   // Região principal/original.
   // Mantida por compatibilidade com o código atual.
   region String?
@@ -127,6 +131,7 @@ model Store {
   @@index([regionalManagementLocked])
   @@index([countryCode, region])
   @@index([type])
+  @@index([locationKeyword])
 }
 
 enum VerificationType {

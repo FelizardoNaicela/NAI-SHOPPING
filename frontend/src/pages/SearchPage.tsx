@@ -48,6 +48,7 @@ export default function SearchPage() {
   const [filters, setFilters] = useState({
   country: "MZ",
   region: "",
+  locationKeyword: "",
   time: "all",
   sort: "recent",
   type: "",
@@ -128,15 +129,16 @@ export default function SearchPage() {
     return () => {
       cancelled = true;
     };
-  }, [
-  q,
-  filters.country,
-  filters.region,
-  filters.time,
-  filters.sort,
-  filters.type,
-  reloadKey,
-]);
+    }, [
+    q,
+    filters.country,
+    filters.region,
+    filters.locationKeyword,
+    filters.time,
+    filters.sort,
+    filters.type,
+    reloadKey,
+  ]);
   // ---------- Histórico ----------
 
   useEffect(() => {
@@ -216,16 +218,17 @@ export default function SearchPage() {
     } finally {
       setLoadingMore(false);
     }
-  }, [
-  q,
-  nextCursor,
-  loadingMore,
-  filters.country,
-  filters.region,
-  filters.time,
-  filters.sort,
-  filters.type,
-]);
+    }, [
+    q,
+    nextCursor,
+    loadingMore,
+    filters.country,
+    filters.region,
+    filters.locationKeyword,
+    filters.time,
+    filters.sort,
+    filters.type,
+  ]);
 
   const lastItemRef = useCallback(
     (node: HTMLDivElement | null) => {
