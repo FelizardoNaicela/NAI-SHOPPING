@@ -74,6 +74,7 @@ export class PermissionGuard
           canManageStores: true,
           canManageRanking: true,
           canPromoteRegionalAdmins: true,
+          canManageReports: true,
         },
       });
 

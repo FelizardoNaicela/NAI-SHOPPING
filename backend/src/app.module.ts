@@ -24,6 +24,7 @@ import { NationalRankingModule } from './ranking/national-ranking.module';
 import { PaymentsModule } from './payments/payments.module';
 import { ConfigModule } from '@nestjs/config';
 import { LegalInvestigationModule } from './legal-investigation/legal-investigation.module';
+import { ReportsModule } from './reports/reports.module';
 
 @Module({
   imports: [
@@ -49,7 +50,8 @@ import { LegalInvestigationModule } from './legal-investigation/legal-investigat
     AdminModule,
     NationalRankingModule,
     PaymentsModule,
-  LegalInvestigationModule,],
+  LegalInvestigationModule,
+ReportsModule,],
   controllers: [AppController,],
   providers: [AppService,],
 })

@@ -4,19 +4,44 @@ import SmartImage from "./SmartImage";
 import ImageLightbox from "./ImageLightbox";
 import ProductCard from "./ProductCard";
 import { useNavigate } from "react-router-dom";
-import PostImageGrid from "./PostImageGrid";
-import { MessageCircle } from "lucide-react";
-import { api } from "../services/api";
-import ShareButton from "./share/ShareButton";
+ import PostImageGrid from "./PostImageGrid";
+ import { api } from "../services/api";
 import ShareModal from "./share/ShareModal";
 import VerificationBadge from "./VerificationBadge";
 import StoreTypeBadge from "./store/StoreTypeBadge";
+import {
+  MoreVertical,
+  MessageCircle,
+  Share2,
+  Flag,
+} from "lucide-react";
+import { useAuth } from "../auth/AuthProvider";
+import ReportModal from "./share/ReportModal";
 
 type Props = {
   post: BackendPost;
 };
 
+const postActionStyle: React.CSSProperties = {
+  width: "100%",
+  display: "flex",
+  alignItems: "center",
+  gap: 11,
+  padding: "11px 10px",
+  border: "none",
+  borderRadius: 8,
+  background: "transparent",
+  color: "var(--text)",
+  fontSize: 13,
+  fontWeight: 500,
+  textAlign: "left",
+  cursor: "pointer",
+};
+
 export default function FeedPost({ post, }: Props) {
+  const { user } = useAuth();
+
+const [reportOpen, setReportOpen] = useState(false);
 
   const images =
   post.images
@@ -48,6 +73,8 @@ const [textExpanded, setTextExpanded] =
 
 const [textOverflow, setTextOverflow] =
   useState(false);
+
+  const [actionsOpen, setActionsOpen] = useState(false);
 
 const textRef =
   useRef<HTMLDivElement>(null);
@@ -146,85 +173,183 @@ border:"1px solid var(--border)",
       }}
     >
 
-      {/* HEADER */}
+{/* HEADER */}
 
- <div
+<div
   onClick={() => navigate(`/stores/${post.store?.id}`)}
   style={{
     display: "flex",
     alignItems: "center",
     gap: 10,
     padding: 12,
-    cursor: "pointer"
+    cursor: "pointer",
   }}
 >
-  <ShareButton
-    onClick={() => setShareOpen(true)}
-/>
-   <button
-        onClick={startChatFromPost}
-        style={{
-            width:34,
-            height:34,
-            borderRadius:"50%",
-            border:"none",
-            background:"var(--surface)",
-            cursor:"pointer",
-            display:"flex",
-            alignItems:"center",
-            justifyContent:"center",
-            boxShadow:"var(--shadow-md)"
-        }}
-    >
-        <MessageCircle size={17}/>
-    </button>
+  {/* AVATAR DA BANCA */}
 
   <div
     style={{
-      width: 36,
-      height: 36,
+      width: 40,
+      height: 40,
+      flexShrink: 0,
       borderRadius: "50%",
       overflow: "hidden",
-      background:"var(--background)"
+      background: "var(--background)",
+    }}
+>
+    <SmartImage
+      src={post.store?.avatarUrl ?? undefined}
+      aspectRatio="1 / 1"
+    />
+  </div>
+
+  {/* INFORMAÇÕES DA BANCA */}
+
+  <div
+    style={{
+      flex: 1,
+      minWidth: 0,
     }}
   >
+    <div
+      style={{
+        fontWeight: 600,
+        fontSize: 14,
+        display: "flex",
+        alignItems: "center",
+        gap: 6,
+        minWidth: 0,
+      }}
+    >
+      <span
+        style={{
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {post.store?.name || "Banca"}
+      </span>
 
-    <SmartImage
-  src={post.store?.avatarUrl ?? undefined}
-  aspectRatio="1 / 1"
-/>
+      <VerificationBadge
+        type={post.store?.verificationType}
+        verified={post.store?.verified}
+        size="sm"
+      />
+    </div>
 
-  </div>
-
-  <div style={{ flex: 1 }}>
-
-    <div style={{ fontWeight: 600, fontSize: 14, display: "flex", alignItems: "center", gap: 6 }}>
-  {post.store?.name || "Banca"}
-
-  <VerificationBadge
-    type={post.store?.verificationType}
-    verified={post.store?.verified}
-    size="sm"
-  />
-</div>
-
-{post.store?.type && (
-  <div style={{ marginTop: 2 }}>
-    <StoreTypeBadge type={post.store.type} />
-  </div>
-)}
+    {post.store?.type && (
+      <div style={{ marginTop: 2 }}>
+        <StoreTypeBadge type={post.store.type} />
+      </div>
+    )}
 
     <div
       style={{
         fontSize: 12,
-        color:"var(--text-soft)",
+        color: "var(--text-soft)",
       }}
     >
       {new Date(post.createdAt).toLocaleString()}
-    </div>
-
+   </div>
   </div>
 
+  {/* MENU DE TRÊS PONTOS */}
+
+  <div
+    style={{
+      position: "relative",
+      flexShrink: 0,
+    }}
+    onClick={(e) => e.stopPropagation()}
+  >
+    <button
+      type="button"
+      title="Mais opções"
+      aria-label="Mais opções da publicação"
+      aria-expanded={actionsOpen}
+      onClick={() => setActionsOpen((open) => !open)}
+      style={{
+        width: 36,
+        height: 36,
+        borderRadius: "50%",
+        border: "1px solid var(--border)",
+        background: "var(--surface)",
+        color: "var(--text)",
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        boxShadow: "var(--shadow-md)",
+      }}
+    >
+      <MoreVertical size={19} />
+    </button>
+
+    {actionsOpen && (
+      <div
+        style={{
+          position: "absolute",
+          top: 43,
+          right: 0,
+          width: 205,
+          zIndex: 100,
+          padding: 6,
+          border: "1px solid var(--border)",
+          borderRadius: 13,
+          background: "var(--surface)",
+          boxShadow: "var(--shadow-lg)",
+        }}
+      >
+        {/* PARTILHAR */}
+
+        <button
+          type="button"
+          onClick={() => {
+            setActionsOpen(false);
+            setShareOpen(true);
+          }}
+          style={postActionStyle}
+        >
+          <Share2 size={17} />
+          Partilhar publicação
+        </button>
+
+        {/* CONVERSAR */}
+
+        <button
+          type="button"
+          onClick={(e) => {
+            setActionsOpen(false);
+            startChatFromPost(e);
+          }}
+          style={postActionStyle}
+        >
+          <MessageCircle size={17} />
+          Conversar com a banca
+        </button>
+
+        {/* DENUNCIAR */}
+
+        {user && (
+          <button
+            type="button"
+            onClick={() => {
+              setActionsOpen(false);
+              setReportOpen(true);
+            }}
+            style={{
+              ...postActionStyle,
+              color: "#dc2626",
+            }}
+          >
+            <Flag size={17} />
+            Denunciar publicação
+          </button>
+        )}
+      </div>
+    )}
+  </div>
 </div>
 
  {/* TEXTO */}
@@ -541,6 +666,13 @@ border:"1px solid var(--border)",
     id={post.id}
     shareUrl={`${window.location.origin}/posts/${post.id}`}
     onClose={() => setShareOpen(false)}
+/>
+
+<ReportModal
+  open={reportOpen}
+  targetType="POST"
+  targetId={post.id}
+  onClose={() => setReportOpen(false)}
 />
     </div>
 

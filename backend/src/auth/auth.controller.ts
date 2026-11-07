@@ -24,7 +24,10 @@ export class AuthController {
     private authService: AuthService,
   ) {}
 
+  // =====================================================
   // REGISTO
+  // =====================================================
+
   @Post('register')
   register(
     @Body('email') email: string,
@@ -44,7 +47,10 @@ export class AuthController {
     );
   }
 
+  // =====================================================
   // LOGIN
+  // =====================================================
+
   @Post('login')
   async login(
     @Body('email') email: string,
@@ -53,7 +59,38 @@ export class AuthController {
     return this.authService.login(email, password);
   }
 
+  // =====================================================
+  // SOLICITAR CÓDIGO DE RECUPERAÇÃO
+  // =====================================================
+
+  @Post('forgot-password')
+  async forgotPassword(
+    @Body('email') email: string,
+  ) {
+    return this.authService.forgotPassword(email);
+  }
+
+  // =====================================================
+  // DEFINIR NOVA SENHA
+  // =====================================================
+
+  @Post('reset-password')
+  async resetPassword(
+    @Body('email') email: string,
+    @Body('code') code: string,
+    @Body('newPassword') newPassword: string,
+  ) {
+    return this.authService.resetPassword(
+      email,
+      code,
+      newPassword,
+    );
+  }
+
+  // =====================================================
   // DADOS DO UTILIZADOR AUTENTICADO
+  // =====================================================
+
   @Get('me')
   @UseGuards(JwtAuthGuard)
   async getMe(@Req() req: any) {
@@ -70,7 +107,7 @@ export class AuthController {
       },
     });
 
-    if (!user) {
+    if (!user || user.deletedAt) {
       throw new UnauthorizedException('Utilizador não encontrado');
     }
 
@@ -89,7 +126,10 @@ export class AuthController {
     };
   }
 
+  // =====================================================
   // TESTE DE ACESSO ADMINISTRATIVO
+  // =====================================================
+
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @Get('admin-only')
@@ -99,7 +139,10 @@ export class AuthController {
     };
   }
 
+  // =====================================================
   // LISTAGEM DE UTILIZADORES
+  // =====================================================
+
   @Get('users')
   @UseGuards(
     JwtAuthGuard,
@@ -116,20 +159,5 @@ export class AuthController {
         createdAt: true,
       },
     });
-  }
-
-  // CONFIRMAÇÃO DO EMAIL PELO LINK
-  @Post('verify-email')
-  async verifyEmail(@Body('token') token: string) {
-    return this.authService.verifyEmail(token);
-  }
-
-  // CONFIRMAÇÃO DO EMAIL PELO CÓDIGO DE SEIS DÍGITOS
-  @Post('verify-email-code')
-  async verifyEmailCode(
-    @Body('email') email: string,
-    @Body('code') code: string,
-  ) {
-    return this.authService.verifyEmailCode(email, code);
-  }
+   }
 }

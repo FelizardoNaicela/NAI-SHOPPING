@@ -15,6 +15,7 @@ import { Request } from 'express';
 
 import {
   VerificationRequestStatus,
+  ReportStatus,
 } from '@prisma/client';
 
 import { JwtAuthGuard } from '../auth/jwt/jwt-auth.guard';
@@ -58,6 +59,7 @@ interface PromoteRegionalAdminDto {
     canManageStores?: boolean;
     canManageRanking?: boolean;
     canPromoteRegionalAdmins?: boolean;
+    canManageReports?: boolean;
   };
 }
 
@@ -72,6 +74,7 @@ interface UpdatePermissionsDto {
   canManageStores?: boolean;
   canManageRanking?: boolean;
   canPromoteRegionalAdmins?: boolean;
+  canManageReports?: boolean;
 }
 
 // =========================================================
@@ -157,6 +160,14 @@ interface NationalRankingAuctionDto {
   startsAt: string;
 
   endsAt: string;
+}
+
+// =========================================================
+// DTO — FILTROS DAS DENÚNCIAS
+// =========================================================
+
+interface ReportReviewDto {
+  reviewNotes?: string;
 }
 
 // =========================================================
@@ -870,6 +881,150 @@ async revenueStats(
   return this.paymentsService.getRevenueStats(
     Number(year) || new Date().getFullYear(),
     region,
+  );
+}
+
+// =========================================================
+// =========================================================
+// GERENCIAR DENÚNCIAS
+// =========================================================
+// =========================================================
+
+// =========================================================
+// LISTAR DENÚNCIAS
+//
+// SUPER_ADMIN:
+//   Todas as denúncias.
+//
+// REGIONAL_ADMIN:
+//   Apenas STORE, PRODUCT e POST
+//   dentro do seu país e região autorizados.
+//
+// Denúncias de USER:
+//   Apenas SUPER_ADMIN.
+// =========================================================
+
+@Get('reports')
+@RequirePermission('canManageReports')
+async listReports(
+  @Req()
+  req: AuthenticatedRequest,
+
+  @Query('status')
+  status?: ReportStatus,
+
+  @Query('page')
+  page?: string,
+
+  @Query('limit')
+  limit?: string,
+) {
+  return this.adminService.listReports(
+    req.user.sub,
+    {
+      status,
+      page: Number(page) || 1,
+      limit: Number(limit) || 20,
+    },
+  );
+}
+
+// =========================================================
+// VISUALIZAR UMA DENÚNCIA
+// =========================================================
+
+@Get('reports/:reportId')
+@RequirePermission('canManageReports')
+async getReportDetails(
+  @Req()
+  req: AuthenticatedRequest,
+
+  @Param('reportId')
+  reportId: string,
+) {
+  return this.adminService.getReportDetails(
+    req.user.sub,
+    reportId,
+  );
+}
+
+// =========================================================
+// ASSUMIR UMA DENÚNCIA
+//
+// PENDING:
+//   Passa para UNDER_REVIEW.
+//
+// UNDER_REVIEW:
+//   Só pode ser assumida pelo administrador
+//   que já é responsável por ela.
+//
+// O Service valida a propriedade da denúncia.
+// =========================================================
+
+@Patch('reports/:reportId/claim')
+@RequirePermission('canManageReports')
+async claimReport(
+  @Req()
+  req: AuthenticatedRequest,
+
+  @Param('reportId')
+  reportId: string,
+) {
+  return this.adminService.claimReport(
+    req.user.sub,
+    reportId,
+  );
+}
+
+// =========================================================
+// RESOLVER DENÚNCIA
+//
+// Apenas o administrador responsável pela denúncia
+// ou o SUPER_ADMIN pode concluir a análise.
+// =========================================================
+
+@Patch('reports/:reportId/resolve')
+@RequirePermission('canManageReports')
+async resolveReport(
+  @Req()
+  req: AuthenticatedRequest,
+
+  @Param('reportId')
+  reportId: string,
+
+  @Body()
+  body: ReportReviewDto,
+) {
+  return this.adminService.resolveReport(
+    req.user.sub,
+    reportId,
+    body.reviewNotes,
+  );
+}
+
+// =========================================================
+// REJEITAR DENÚNCIA
+//
+// Apenas o administrador responsável pela denúncia
+// ou o SUPER_ADMIN pode concluir a análise.
+// =========================================================
+
+@Patch('reports/:reportId/reject')
+@RequirePermission('canManageReports')
+async rejectReport(
+  @Req()
+  req: AuthenticatedRequest,
+
+  @Param('reportId')
+  reportId: string,
+
+  @Body()
+  body: ReportReviewDto,
+) {
+  return this.adminService.rejectReport(
+    req.user.sub,
+    reportId,
+    body.reviewNotes,
   );
 }
     // =========================================================

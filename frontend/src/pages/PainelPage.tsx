@@ -16,6 +16,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import AdminRevenue from "./painel/AdminRevenue";
 import AdminLegalHolds from "./painel/AdminLegalHolds";
+import AdminReportsManagement from "./painel/AdminReportsManagement";
 
 
 import AdminLegalInvestigators from "./painel/AdminLegalInvestigators";
@@ -216,6 +217,10 @@ if (!isAdminUser) {
           {/* ÁREAS (cada uma recolhe sozinha) */}
 
           <AdminManagement profile={profile} />
+
+          {(isSuperAdmin || profile.canManageReports) && (
+  <AdminReportsManagement profile={profile} />
+)}
 
           <AdminVerificationRequests profile={profile} />
 

@@ -25,6 +25,7 @@ export interface PainelProfile {
   canManageStores: boolean;
   canManageRanking: boolean;
   canPromoteRegionalAdmins: boolean;
+  canManageReports: boolean;
 
   user: {
     id: string;
@@ -41,7 +42,8 @@ type PermissionKey =
   | 'canRevokeVerifications'
   | 'canManageStores'
   | 'canManageRanking'
-  | 'canPromoteRegionalAdmins';
+  | 'canPromoteRegionalAdmins'
+  | 'canManageReports';
 
 interface PermissionItem {
   key: PermissionKey;
@@ -67,6 +69,7 @@ interface AdminItem {
   canManageStores: boolean;
   canManageRanking: boolean;
   canPromoteRegionalAdmins: boolean;
+  canManageReports: boolean;
 
   user: {
     id: string;
@@ -92,6 +95,7 @@ interface PromotionPermissions {
   canManageStores: boolean;
   canManageRanking: boolean;
   canPromoteRegionalAdmins: boolean;
+  canManageReports: boolean;
 }
 
 interface AdminManagementProps {
@@ -135,6 +139,12 @@ const permissions: PermissionItem[] = [
     description:
       'Permite promover utilizadores para administrador regional.',
   },
+  {
+  key: 'canManageReports',
+  label: 'Gerir denúncias',
+  description:
+    'Permite visualizar, analisar e resolver denúncias submetidas pelos utilizadores.',
+},
 ];
 
 const emptyPermissions: PromotionPermissions = {
@@ -144,6 +154,7 @@ const emptyPermissions: PromotionPermissions = {
   canManageStores: false,
   canManageRanking: false,
   canPromoteRegionalAdmins: false,
+  canManageReports: false,
 };
 
 export default function AdminManagement({
@@ -345,6 +356,7 @@ const hasMoreAdmins =
         admin.canManageRanking,
       canPromoteRegionalAdmins:
         admin.canPromoteRegionalAdmins,
+        canManageReports: admin.canManageReports,
     });
 
     setRegionForm(
@@ -446,6 +458,7 @@ const hasMoreAdmins =
           updated.canManageRanking,
         canPromoteRegionalAdmins:
           updated.canPromoteRegionalAdmins,
+          canManageReports: updated.canManageReports,
       });
 
       setEditingPermissions(false);
@@ -1552,6 +1565,7 @@ const hasMoreAdmins =
                           selectedAdmin.canManageRanking,
                         canPromoteRegionalAdmins:
                           selectedAdmin.canPromoteRegionalAdmins,
+                          canManageReports: selectedAdmin.canManageReports,
                       });
                     }}
                     disabled={saving}

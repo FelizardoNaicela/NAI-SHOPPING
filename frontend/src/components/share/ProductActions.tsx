@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import {
   MessageCircle,
@@ -5,11 +6,13 @@ import {
   Pencil,
   Trash2,
   Share2,
+  Flag,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../services/api";
 import { useAuth } from "../../auth/AuthProvider";
 import ShareModal from "./ShareModal";
+import ReportModal from "./ReportModal";
 import styles from "./ProductActions.module.css";
 
 type Props = {
@@ -23,19 +26,13 @@ export default function ProductActions({
   storeId,
   storeOwnerId,
 }: Props) {
-
   const navigate = useNavigate();
-
   const { user } = useAuth();
 
-  const [shareOpen, setShareOpen] =
-    useState(false);
-
-  const [menuOpen, setMenuOpen] =
-    useState(false);
-
-  const [deleting, setDeleting] =
-    useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   // ==========================================
   // DONO DO PRODUTO
@@ -50,28 +47,17 @@ export default function ProductActions({
   // CHAT
   // ==========================================
 
-  async function startChat(
-    e: React.MouseEvent,
-  ) {
-
+  async function startChat(e: React.MouseEvent) {
     e.stopPropagation();
 
     if (!storeId) return;
 
-    const { data } =
-      await api.post(
-        `/chat/conversation/${storeId}`,
-      );
-
-    localStorage.setItem(
-      "activeConversationId",
-      data.id,
+    const { data } = await api.post(
+      `/chat/conversation/${storeId}`,
     );
 
-    localStorage.setItem(
-      "pendingSharedProductId",
-      productId,
-    );
+    localStorage.setItem("activeConversationId", data.id);
+    localStorage.setItem("pendingSharedProductId", productId);
 
     navigate("/inbox");
   }
@@ -80,14 +66,10 @@ export default function ProductActions({
   // EDITAR
   // ==========================================
 
-  function editProduct(
-    e: React.MouseEvent,
-  ) {
-
+  function editProduct(e: React.MouseEvent) {
     e.stopPropagation();
 
     setMenuOpen(false);
-
     navigate(`/product/${productId}/edit`);
   }
 
@@ -95,165 +77,150 @@ export default function ProductActions({
   // APAGAR
   // ==========================================
 
-  async function deleteProduct(
-    e: React.MouseEvent,
-  ) {
-
+  async function deleteProduct(e: React.MouseEvent) {
     e.stopPropagation();
 
     if (!isOwner) return;
 
-    const confirmed =
-      window.confirm(
-        "Tem certeza que deseja apagar este produto?",
-      );
+    const confirmed = window.confirm(
+      "Tem certeza que deseja apagar este produto?",
+    );
 
     if (!confirmed) return;
 
     try {
-
       setDeleting(true);
 
-      await api.delete(
-        `/products/${productId}`,
-      );
+      await api.delete(`/products/${productId}`);
 
       setMenuOpen(false);
 
-      // avisaremos o componente pai
       window.dispatchEvent(
-        new CustomEvent(
-          "productDeleted",
-          {
-            detail: {
-              productId,
-            },
-          },
-        ),
+        new CustomEvent("productDeleted", {
+          detail: { productId },
+        }),
       );
-
     } catch (error) {
-
-      alert(
-        "Não foi possível apagar o produto.",
-      );
-
+      alert("Não foi possível apagar o produto.");
     } finally {
-
       setDeleting(false);
-
     }
   }
 
- return (
-  <>
-    <div
-      className={styles.container}
-      onClick={(e) => e.stopPropagation()}
-    >
-
-      {/* =====================================
-          MENU DE AÇÕES
-      ===================================== */}
-
-      <div className={styles.menuWrapper}>
-
-        <button
-          type="button"
-          className={styles.moreButton}
-          onClick={(e) => {
-            e.stopPropagation();
-
-            setMenuOpen(value => !value);
-          }}
-          aria-label="Mais opções"
-        >
-          <MoreVertical size={18} />
-        </button>
-
-        {menuOpen && (
-          <div
-            className={styles.dropdown}
-            onClick={(e) => e.stopPropagation()}
+  return (
+    <>
+      <div
+        className={styles.container}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className={styles.menuWrapper}>
+          <button
+            type="button"
+            className={styles.moreButton}
+            onClick={(e) => {
+              e.stopPropagation();
+              setMenuOpen((value) => !value);
+            }}
+            aria-label="Mais opções"
           >
+            <MoreVertical size={18} />
+          </button>
 
-            {/* COMPARTILHAR — TODOS */}
-
-            <button
-              type="button"
-              className={styles.menuItem}
-              onClick={(e) => {
-                e.stopPropagation();
-
-                setMenuOpen(false);
-                setShareOpen(true);
-              }}
+          {menuOpen && (
+            <div
+              className={styles.dropdown}
+              onClick={(e) => e.stopPropagation()}
             >
-              <Share2 size={15} />
-              <span>Compartilhar</span>
-            </button>
+              {/* COMPARTILHAR — TODOS */}
 
-
-            {/* CHAT — TODOS */}
-
-            {storeId && (
               <button
                 type="button"
                 className={styles.menuItem}
-                onClick={startChat}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setMenuOpen(false);
+                  setShareOpen(true);
+                }}
               >
-                <MessageCircle size={15} />
-                <span>Conversar com a banca</span>
+                <Share2 size={15} />
+                <span>Compartilhar</span>
               </button>
-            )}
 
+              {/* CHAT — TODOS */}
 
-            {/* =================================
-                OPÇÕES DO DONO
-            ================================= */}
-
-            {isOwner && (
-              <>
+              {storeId && (
                 <button
                   type="button"
                   className={styles.menuItem}
-                  onClick={editProduct}
+                  onClick={startChat}
                 >
-                  <Pencil size={15} />
-                  <span>Editar</span>
+                  <MessageCircle size={15} />
+                  <span>Conversar com a banca</span>
                 </button>
+              )}
 
+              {/* DENUNCIAR — VISITANTES AUTENTICADOS */}
+
+              {user && !isOwner && (
                 <button
                   type="button"
-                  className={`${styles.menuItem} ${styles.deleteItem}`}
-                  onClick={deleteProduct}
-                  disabled={deleting}
+                  className={styles.menuItem}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setMenuOpen(false);
+                    setReportOpen(true);
+                  }}
                 >
-                  <Trash2 size={15} />
-
-                  <span>
-                    {deleting
-                      ? "A apagar..."
-                      : "Apagar"}
-                  </span>
+                  <Flag size={15} />
+                  <span>Denunciar produto</span>
                 </button>
-              </>
-            )}
+              )}
 
-          </div>
-        )}
+              {/* OPÇÕES DO DONO */}
 
+              {isOwner && (
+                <>
+                  <button
+                    type="button"
+                    className={styles.menuItem}
+                    onClick={editProduct}
+                  >
+                    <Pencil size={15} />
+                    <span>Editar</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`${styles.menuItem} ${styles.deleteItem}`}
+                    onClick={deleteProduct}
+                    disabled={deleting}
+                  >
+                    <Trash2 size={15} />
+                    <span>
+                      {deleting ? "A apagar..." : "Apagar"}
+                    </span>
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
-    </div>
+      <ShareModal
+        open={shareOpen}
+        type="product"
+        id={productId}
+        shareUrl={`${window.location.origin}/products/${productId}`}
+        onClose={() => setShareOpen(false)}
+      />
 
-    <ShareModal
-      open={shareOpen}
-      type="product"
-      id={productId}
-      shareUrl={`${window.location.origin}/products/${productId}`}
-      onClose={() => setShareOpen(false)}
-    />
-  </>
-);
+      <ReportModal
+        open={reportOpen}
+        targetType="PRODUCT"
+        targetId={productId}
+        onClose={() => setReportOpen(false)}
+      />
+    </>
+  );
 }

@@ -13,6 +13,9 @@ import {
   VerificationRequestStatus,
   PaymentStatus,
   PaymentType,
+  ReportStatus,
+  ReportTargetType,
+  ReportReason,
 } from '@prisma/client';
 
 import { InternalServerErrorException } from '@nestjs/common';
@@ -26,13 +29,14 @@ import {
 } from '../payments/gateways/payment-gateway.service';
 import { REGIONS } from '../common/regions';
 
-interface AdminPermissions {
+  interface AdminPermissions {
   canManageVerifications?: boolean;
   canApproveVerifications?: boolean;
   canRevokeVerifications?: boolean;
   canManageStores?: boolean;
   canManageRanking?: boolean;
   canPromoteRegionalAdmins?: boolean;
+  canManageReports?: boolean;
 }
 
 interface SetNationalRankingAuctionData {
@@ -604,6 +608,9 @@ this.assertValidRegion(
         canPromoteRegionalAdmins:
           permissions?.canPromoteRegionalAdmins ??
           false,
+
+          canManageReports:
+  permissions?.canManageReports ?? false,
       };
     } else {
       const permissionEntries: Array<
@@ -614,6 +621,7 @@ this.assertValidRegion(
         'canRevokeVerifications',
         'canManageStores',
         'canManageRanking',
+        'canManageReports',
       ];
 
       for (
@@ -663,6 +671,9 @@ this.assertValidRegion(
 
         canPromoteRegionalAdmins:
           false,
+
+          canManageReports:
+  permissions?.canManageReports ?? false,
       };
     }
 
@@ -717,6 +728,9 @@ this.assertValidRegion(
               canPromoteRegionalAdmins:
                 finalPermissions.canPromoteRegionalAdmins ??
                 false,
+
+                canManageReports:
+  finalPermissions.canManageReports ?? false,
             },
 
             include: {
@@ -769,6 +783,7 @@ this.assertValidRegion(
         'canRevokeVerifications',
         'canManageStores',
         'canManageRanking',
+        'canManageReports',
       ];
 
       for (
@@ -837,6 +852,10 @@ this.assertValidRegion(
           canPromoteRegionalAdmins:
             permissions.canPromoteRegionalAdmins,
         }),
+
+        ...(permissions.canManageReports !== undefined && {
+  canManageReports: permissions.canManageReports,
+}),
       },
 
       include: {
@@ -5324,6 +5343,577 @@ async confirmVerificationPaymentByReference(
     },
   );
 }
+
+
+  // =========================================================
+  // VERIFICAR PERMISSÃO PARA GERIR DENÚNCIAS
+  // =========================================================
+
+  private async requireReportManager(requesterId: string) {
+    const requester = await this.requireActiveAdmin(requesterId);
+
+    if (
+      requester.adminRole !== AdminRole.SUPER_ADMIN &&
+      !requester.canManageReports
+    ) {
+      throw new ForbiddenException(
+        'Este administrador não possui permissão para gerir denúncias.',
+      );
+    }
+
+    if (requester.adminRole === AdminRole.REGIONAL_ADMIN) {
+      if (!requester.user.countryCode || !requester.region) {
+        throw new BadRequestException(
+          'O administrador regional precisa ter país e região definidos.',
+        );
+      }
+    }
+
+    return requester;
+  }
+
+  // =========================================================
+  // OBTER BANCA ASSOCIADA A UMA DENÚNCIA
+  // =========================================================
+
+  private async getReportTargetStore(
+    targetType: ReportTargetType,
+    targetId: string,
+  ) {
+    if (targetType === ReportTargetType.STORE) {
+      return this.prisma.store.findUnique({
+        where: { id: targetId },
+        select: {
+          id: true,
+          name: true,
+          countryCode: true,
+          region: true,
+          regionalManagementLocked: true,
+        },
+      });
+    }
+
+    if (targetType === ReportTargetType.PRODUCT) {
+      const product = await this.prisma.product.findUnique({
+        where: { id: targetId },
+        select: {
+          store: {
+            select: {
+              id: true,
+              name: true,
+              countryCode: true,
+              region: true,
+              regionalManagementLocked: true,
+            },
+          },
+        },
+      });
+
+      return product?.store ?? null;
+    }
+
+    if (targetType === ReportTargetType.POST) {
+      const post = await this.prisma.post.findUnique({
+        where: { id: targetId },
+        select: {
+          store: {
+            select: {
+              id: true,
+              name: true,
+              countryCode: true,
+              region: true,
+              regionalManagementLocked: true,
+            },
+          },
+        },
+      });
+
+      return post?.store ?? null;
+    }
+
+    return null;
+  }
+
+  // =========================================================
+  // VALIDAR ACESSO REGIONAL À DENÚNCIA
+  // =========================================================
+
+  private async assertReportAccess(
+    requester: any,
+    targetType: ReportTargetType,
+    targetId: string,
+  ) {
+    if (requester.adminRole === AdminRole.SUPER_ADMIN) {
+      return;
+    }
+
+    if (targetType === ReportTargetType.USER) {
+      throw new ForbiddenException(
+        'Somente o SUPER_ADMIN pode gerir denúncias de utilizadores.',
+      );
+    }
+
+    const store = await this.getReportTargetStore(
+      targetType,
+      targetId,
+    );
+
+    if (!store) {
+      throw new NotFoundException(
+        'A banca associada à denúncia não foi encontrada.',
+      );
+    }
+
+    const requesterCountry = requester.user.countryCode
+      ?.trim()
+      .toUpperCase();
+
+    const storeCountry = store.countryCode
+      ?.trim()
+      .toUpperCase();
+
+    const requesterRegion = requester.region?.trim();
+    const storeRegion = store.region?.trim();
+
+    if (
+      store.regionalManagementLocked ||
+      storeCountry !== requesterCountry ||
+      storeRegion !== requesterRegion
+    ) {
+      throw new ForbiddenException(
+        'Este administrador regional não pode gerir denúncias desta banca.',
+      );
+    }
+  }
+
+  // =========================================================
+  // LISTAR DENÚNCIAS
+  // =========================================================
+
+  async listReports(
+  requesterId: string,
+  filters?: {
+    status?: ReportStatus;
+    targetType?: ReportTargetType;
+    reason?: ReportReason;
+    page?: number;
+    limit?: number;
+  },
+) {
+  const requester = await this.requireReportManager(requesterId);
+
+  const page = Math.max(1, Number(filters?.page) || 1);
+
+  const limit = Math.min(
+    50,
+    Math.max(1, Number(filters?.limit) || 20),
+  );
+
+  const where: any = {
+    ...(filters?.status && {
+      status: filters.status,
+    }),
+
+    ...(filters?.targetType && {
+      targetType: filters.targetType,
+    }),
+
+    ...(filters?.reason && {
+      reason: filters.reason,
+    }),
+  };
+
+  // =========================================================
+  // RESTRIÇÃO REGIONAL
+  // =========================================================
+
+  if (requester.adminRole === AdminRole.REGIONAL_ADMIN) {
+   const countryCode = requester.user.countryCode!
+  .trim()
+  .toUpperCase();
+
+const region = requester.region!
+  .trim();
+
+    // -------------------------------------------------------
+    // 1. Obter bancas autorizadas para este administrador.
+    // -------------------------------------------------------
+
+    const stores = await this.prisma.store.findMany({
+      where: {
+        countryCode,
+        region,
+        regionalManagementLocked: false,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    const storeIds = stores.map((store) => store.id);
+
+    // -------------------------------------------------------
+    // 2. Obter produtos pertencentes a essas bancas.
+    // -------------------------------------------------------
+
+    const products = storeIds.length
+      ? await this.prisma.product.findMany({
+          where: {
+            storeId: {
+              in: storeIds,
+            },
+          },
+          select: {
+            id: true,
+          },
+        })
+      : [];
+
+    const productIds = products.map(
+      (product) => product.id,
+    );
+
+    // -------------------------------------------------------
+    // 3. Obter publicações pertencentes a essas bancas.
+    // -------------------------------------------------------
+
+    const posts = storeIds.length
+      ? await this.prisma.post.findMany({
+          where: {
+            storeId: {
+              in: storeIds,
+            },
+          },
+          select: {
+            id: true,
+          },
+        })
+      : [];
+
+    const postIds = posts.map((post) => post.id);
+
+    // -------------------------------------------------------
+    // 4. Restringir as denúncias aos recursos autorizados.
+    //
+    // USER nunca entra nesta consulta regional.
+    // -------------------------------------------------------
+
+    where.AND = [
+      {
+        OR: [
+          {
+            targetType: ReportTargetType.STORE,
+            targetId: {
+              in: storeIds,
+            },
+          },
+          {
+            targetType: ReportTargetType.PRODUCT,
+            targetId: {
+              in: productIds,
+            },
+          },
+          {
+            targetType: ReportTargetType.POST,
+            targetId: {
+              in: postIds,
+            },
+          },
+        ],
+      },
+    ];
+  }
+
+  // =========================================================
+  // CONSULTA DAS DENÚNCIAS
+  //
+  // A filtragem regional já aconteceu.
+  // Agora podemos aplicar a paginação corretamente.
+  // =========================================================
+
+  const [reports, total] = await this.prisma.$transaction([
+    this.prisma.report.findMany({
+      where,
+      include: {
+        reporter: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            email: true,
+          },
+        },
+
+        reviewedBy: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+
+    this.prisma.report.count({
+      where,
+    }),
+  ]);
+
+  // =========================================================
+  // RESULTADO
+  // =========================================================
+
+  return {
+    reports,
+
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+}
+
+  // =========================================================
+  // CONSULTAR DETALHES DE UMA DENÚNCIA
+  // =========================================================
+
+  async getReportDetails(
+    requesterId: string,
+    reportId: string,
+  ) {
+    const requester = await this.requireReportManager(requesterId);
+
+    const report = await this.prisma.report.findUnique({
+      where: { id: reportId },
+      include: {
+        reporter: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            email: true,
+          },
+        },
+        reviewedBy: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    if (!report) {
+      throw new NotFoundException('Denúncia não encontrada.');
+    }
+
+    await this.assertReportAccess(
+      requester,
+      report.targetType,
+      report.targetId,
+    );
+
+    return report;
+  }
+
+  // =========================================================
+  // ASSUMIR DENÚNCIA
+  // =========================================================
+
+  async claimReport(
+    requesterId: string,
+    reportId: string,
+  ) {
+    const requester = await this.requireReportManager(requesterId);
+
+    const report = await this.prisma.report.findUnique({
+      where: { id: reportId },
+    });
+
+    if (!report) {
+      throw new NotFoundException('Denúncia não encontrada.');
+    }
+
+    await this.assertReportAccess(
+      requester,
+      report.targetType,
+      report.targetId,
+    );
+
+    if (report.status === ReportStatus.UNDER_REVIEW) {
+      if (report.reviewedById === requesterId) {
+        return report;
+      }
+
+      throw new BadRequestException(
+        'Esta denúncia já está a ser analisada por outro administrador.',
+      );
+    }
+
+    if (report.status !== ReportStatus.PENDING) {
+      throw new BadRequestException(
+        'Só é possível assumir denúncias pendentes.',
+      );
+    }
+
+    const updated = await this.prisma.report.updateMany({
+      where: {
+        id: reportId,
+        status: ReportStatus.PENDING,
+        reviewedById: null,
+      },
+      data: {
+        status: ReportStatus.UNDER_REVIEW,
+        reviewedById: requesterId,
+      },
+    });
+
+    if (updated.count !== 1) {
+      throw new BadRequestException(
+        'Esta denúncia foi assumida por outro administrador. Atualiza os dados.',
+      );
+    }
+
+    return this.prisma.report.findUnique({
+      where: { id: reportId },
+    });
+  }
+
+  // =========================================================
+  // CONCLUIR ANÁLISE DE DENÚNCIA
+  // =========================================================
+
+  private async finalizeReport(
+    requesterId: string,
+    reportId: string,
+    status: 'RESOLVED' | 'REJECTED',
+    reviewNotes?: string,
+  ) {
+    const requester = await this.requireReportManager(requesterId);
+
+    const report = await this.prisma.report.findUnique({
+      where: { id: reportId },
+    });
+
+    if (!report) {
+      throw new NotFoundException('Denúncia não encontrada.');
+    }
+
+    await this.assertReportAccess(
+      requester,
+      report.targetType,
+      report.targetId,
+    );
+
+    if (report.status !== ReportStatus.UNDER_REVIEW) {
+      throw new BadRequestException(
+        'A denúncia precisa estar em análise antes de ser concluída.',
+      );
+    }
+
+    if (
+      report.reviewedById !== requesterId &&
+      requester.adminRole !== AdminRole.SUPER_ADMIN
+    ) {
+      throw new ForbiddenException(
+        'Somente o administrador responsável ou o SUPER_ADMIN pode concluir esta denúncia.',
+      );
+    }
+
+    const notes = reviewNotes?.trim();
+
+    if (notes && notes.length > 2000) {
+      throw new BadRequestException(
+        'As notas da análise não podem ultrapassar 2000 caracteres.',
+      );
+    }
+
+    const updated = await this.prisma.report.updateMany({
+      where: {
+        id: reportId,
+        status: ReportStatus.UNDER_REVIEW,
+        reviewedById: report.reviewedById,
+      },
+      data: {
+        status,
+        reviewedById: requesterId,
+        reviewNotes: notes || null,
+        reviewedAt: new Date(),
+      },
+    });
+
+    if (updated.count !== 1) {
+      throw new BadRequestException(
+        'A denúncia foi alterada por outra operação. Atualiza os dados.',
+      );
+    }
+
+    return this.prisma.report.findUnique({
+      where: { id: reportId },
+      include: {
+        reporter: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            email: true,
+          },
+        },
+        reviewedBy: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            email: true,
+          },
+        },
+      },
+    });
+  }
+
+  // =========================================================
+  // RESOLVER DENÚNCIA
+  // =========================================================
+
+  async resolveReport(
+    requesterId: string,
+    reportId: string,
+    reviewNotes?: string,
+  ) {
+    return this.finalizeReport(
+      requesterId,
+      reportId,
+      ReportStatus.RESOLVED,
+      reviewNotes,
+    );
+  }
+
+  // =========================================================
+  // REJEITAR DENÚNCIA
+  // =========================================================
+
+  async rejectReport(
+    requesterId: string,
+    reportId: string,
+    reviewNotes?: string,
+  ) {
+    return this.finalizeReport(
+      requesterId,
+      reportId,
+      ReportStatus.REJECTED,
+      reviewNotes,
+    );
+  }
 
 
 private assertValidRegion(countryCode: string, region: string) {

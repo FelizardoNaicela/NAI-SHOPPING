@@ -40,11 +40,12 @@ export class AdminGuard implements CanActivate {
           region: true,
 
           canManageVerifications: true,
-          canApproveVerifications: true,
-          canRevokeVerifications: true,
-          canManageStores: true,
-          canManageRanking: true,
-          canPromoteRegionalAdmins: true,
+canApproveVerifications: true,
+canRevokeVerifications: true,
+canManageStores: true,
+canManageRanking: true,
+canPromoteRegionalAdmins: true,
+canManageReports: true,
         },
       });
 

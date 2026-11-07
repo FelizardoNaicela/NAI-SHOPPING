@@ -1,3 +1,4 @@
+
 import { Routes, Route } from "react-router-dom";
 
 import StorePage from "./pages/StorePage";
@@ -12,7 +13,7 @@ import MainLayout from "./components/layouts/MainLayout";
 import LoginPage from "./pages/LoginPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RegisterPage from "./pages/RegisterPage";
-import CreateStorePage from "./pages/CreateStorePage"; // 🔥 corrigido
+import CreateStorePage from "./pages/CreateStorePage";
 import { Inbox } from "./pages/Inbox";
 import AuctionsPage from "./pages/AuctionsPage";
 import ProfilePage from "./pages/ProfilePage";
@@ -32,13 +33,16 @@ import NationalRankingManagementPage from "./pages/NationalRankingManagementPage
 import NationalRankingAuctionsPage from "./pages/NationalRankingAuctionsPage";
 import NationalRankingAuctionPage from "./pages/NationalRankingAuctionPage";
 import LegalDashboardPage from "./pages/Legal/LegalDashboardPage";
-import VerifyEmailPage from "./pages/VerifyEmailPage";
+
+// Novas páginas de recuperação de senha
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 
 function App() {
   return (
     <Routes>
 
-      {/* 🔹 ROTAS COM LAYOUT (HEADER + UI PADRÃO) */}
+      {/* ROTAS COM LAYOUT (HEADER + UI PADRÃO) */}
       <Route element={<MainLayout />}>
 
         <Route path="/" element={<HomePage />} />
@@ -48,138 +52,138 @@ function App() {
 
       </Route>
 
-      {/* 🔹 ROTAS FORA DO LAYOUT */}
+      {/* ROTAS FORA DO LAYOUT */}
       <Route path="/stores/:id" element={<StorePage />} />
 
-<Route
-  path="/stores/:id/promote"
-  element={<PromotionPage />}
-/>
-
-<Route
-  path="/stores/:id/panel"
-  element={
-    <ProtectedRoute>
-      <StorePanelPage />
-    </ProtectedRoute>
-  }
-/>
-
-<Route path="/admin" element={<PainelPage />} />
-
-<Route
-  path="/admin/ranking/national"
-  element={
-    <ProtectedRoute>
-      <NationalRankingManagementPage />
-    </ProtectedRoute>
-  }
-/>
-
-<Route
-    path="/inbox"
-    element={
-      <ProtectedRoute>
-        <Inbox />
-      </ProtectedRoute>
-    }
-  />
-
-
-  <Route
-    path="/product/:id/edit"
-    element={<ProtectedRoute>
-    <EditProductPage />
-    </ProtectedRoute>
-  }
-  />
-
-<Route
-  path="/stores/:id/promote/:type"
-  element={<PromotionPackagesPage />}
-/>
-
-<Route
-  path="/stores/:id/promote/configure"
-  element={<PromotionConfigurePage />}
-/>
-
-<Route
-  path="/stores/:id/promote/summary"
-  element={<PromotionSummaryPage />}
-/>
+      <Route
+        path="/stores/:id/promote"
+        element={<PromotionPage />}
+      />
 
       <Route
+        path="/stores/:id/panel"
+        element={
+          <ProtectedRoute>
+            <StorePanelPage />
+          </ProtectedRoute>
+        }
+      />
 
-    path="/user/:username"
+      <Route path="/admin" element={<PainelPage />} />
 
-    element={<PublicProfilePage />}
+      <Route
+        path="/admin/ranking/national"
+        element={
+          <ProtectedRoute>
+            <NationalRankingManagementPage />
+          </ProtectedRoute>
+        }
+      />
 
-/>
+      <Route
+        path="/inbox"
+        element={
+          <ProtectedRoute>
+            <Inbox />
+          </ProtectedRoute>
+        }
+      />
 
-<Route
-  path="/chat/start/store/:storeId"
-  element={<StartChatFromProduct />}
-/>
+      <Route
+        path="/product/:id/edit"
+        element={
+          <ProtectedRoute>
+            <EditProductPage />
+          </ProtectedRoute>
+        }
+      />
 
-<Route
-  path="/stores/:id/promote/products"
-  element={<PromotionProductsPage />}
-/>
+      <Route
+        path="/stores/:id/promote/:type"
+        element={<PromotionPackagesPage />}
+      />
 
-<Route
-  path="/promotions"
-  element={
-    <ProtectedRoute>
-      <PromotionHistoryPage />
-    </ProtectedRoute>
-  }
-/>
-<Route
-    path="/post/:postId"
-    element={<PostPage />}
-/>
+      <Route
+        path="/stores/:id/promote/configure"
+        element={<PromotionConfigurePage />}
+      />
 
-<Route path="/verify-email" element={<VerifyEmailPage />} />
+      <Route
+        path="/stores/:id/promote/summary"
+        element={<PromotionSummaryPage />}
+      />
 
-            <Route
-    path="/profile"
-    element={
-        <ProtectedRoute>
+      <Route
+        path="/user/:username"
+        element={<PublicProfilePage />}
+      />
+
+      <Route
+        path="/chat/start/store/:storeId"
+        element={<StartChatFromProduct />}
+      />
+
+      <Route
+        path="/stores/:id/promote/products"
+        element={<PromotionProductsPage />}
+      />
+
+      <Route
+        path="/promotions"
+        element={
+          <ProtectedRoute>
+            <PromotionHistoryPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/post/:postId"
+        element={<PostPage />}
+      />
+
+      {/* Perfil */}
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
             <ProfilePage />
-        </ProtectedRoute>
-    }
-/>
-        <Route
-          path="/stores/:id/category/:categoryId"
-          element={<StoreCategoryPage />}
-        />
+          </ProtectedRoute>
+        }
+      />
 
-                <Route path="/search" element={<SearchPage />} />
+      <Route
+        path="/stores/:id/category/:categoryId"
+        element={<StoreCategoryPage />}
+      />
 
+      <Route path="/search" element={<SearchPage />} />
 
-        <Route path="/auctions" element={<AuctionsPage/>}/>
+      <Route path="/auctions" element={<AuctionsPage />} />
 
-        <Route
-          path="/stores/:id/products/new"
-          element={
-            <ProtectedRoute>
-              <CreateProductPage />
-            </ProtectedRoute>
-          }
-        />
+      <Route
+        path="/stores/:id/products/new"
+        element={
+          <ProtectedRoute>
+            <CreateProductPage />
+          </ProtectedRoute>
+        }
+      />
 
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <div>Perfil</div>
-            </ProtectedRoute>
-          }
-        />
-
+      {/* Autenticação */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+
+      {/* Recuperação de senha */}
+      <Route
+        path="/forgot-password"
+        element={<ForgotPasswordPage />}
+      />
+
+      <Route
+        path="/reset-password"
+        element={<ResetPasswordPage />}
+      />
 
       <Route
         path="/stores/create"
@@ -190,23 +194,27 @@ function App() {
         }
       />
 
+      {/* Ranking Nacional */}
       <Route
-  path="/ranking/national/auctions"
-  element={<NationalRankingAuctionsPage />}
-/>
+        path="/ranking/national/auctions"
+        element={<NationalRankingAuctionsPage />}
+      />
 
-<Route
-  path="/ranking/national/auction/:auctionId"
-  element={<NationalRankingAuctionPage />}
-/>
-<Route
-  path="/legal"
-  element={
-    <ProtectedRoute>
-      <LegalDashboardPage />
-    </ProtectedRoute>
-  }
-/>
+      <Route
+        path="/ranking/national/auction/:auctionId"
+        element={<NationalRankingAuctionPage />}
+      />
+
+      {/* Área jurídica */}
+      <Route
+        path="/legal"
+        element={
+          <ProtectedRoute>
+            <LegalDashboardPage />
+          </ProtectedRoute>
+        }
+      />
+
     </Routes>
   );
 }

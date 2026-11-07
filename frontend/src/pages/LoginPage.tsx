@@ -1,15 +1,29 @@
+
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { api } from "../services/api";
 import styles from "./LoginPage.module.css";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const location = useLocation();
   const navigate = useNavigate();
 
-  const { login } = useAuth(); // 👈 AQUI
+  const registrationState = location.state as {
+    registered?: boolean;
+    email?: string;
+  } | null;
+
+  const loginState = location.state as {
+  registered?: boolean;
+  email?: string;
+  passwordReset?: boolean;
+} | null;
+
+  const [email, setEmail] = useState(registrationState?.email ?? "");
+  const [password, setPassword] = useState("");
+
+  const { login } = useAuth();
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -22,9 +36,9 @@ export default function LoginPage() {
 
       const { accessToken, user } = res.data;
 
-      login(accessToken, user); // 👈 SALVA NO CONTEXTO
+      login(accessToken, user);
 
-      // salva storeId também
+      // Salva storeId também
       if (user.storeId) {
         localStorage.setItem("storeId", user.storeId);
       }
@@ -36,47 +50,64 @@ export default function LoginPage() {
   }
 
   return (
-<div className={styles.page}>
-
-    <div className={styles.card}>
+    <div className={styles.page}>
+      <div className={styles.card}>
 
         <div className={styles.logo}>
-            <h1>NAI</h1>
-            <p>NAISHOPPING Marketplace</p>
+          <h1>NAI</h1>
+          <p>NAISHOPPING Marketplace</p>
         </div>
 
+        {registrationState?.registered && (
+          <div className={styles.success}>
+            Conta criada com sucesso! Já podes entrar na tua conta.
+          </div>
+        )}
+
+        {loginState?.passwordReset && (
+  <div className={styles.success}>
+    Palavra-passe alterada com sucesso! Entra com a tua nova senha.
+  </div>
+)}
+
         <form onSubmit={handleLogin}>
+          <input
+            className={styles.input}
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            required
+          />
 
-            <input
-                className={styles.input}
-                placeholder="Email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-            />
+          <input
+            className={styles.input}
+            type="password"
+            placeholder="Palavra-passe"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            required
+          />
 
-            <input
-                className={styles.input}
-                type="password"
-                placeholder="Palavra-passe"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-            />
+          <div className={styles.forgotPassword}>
+            <Link to="/forgot-password">
+              Esqueci-me da senha
+            </Link>
+          </div>
 
-            <button className={styles.button}>
-                Entrar
-            </button>
+          <button className={styles.button} type="submit">
+            Entrar
+          </button>
 
-            <div
-                className={styles.register}
-                onClick={() => navigate("/register")}
-            >
-                Criar conta
-            </div>
-
+          <div
+            className={styles.register}
+            onClick={() => navigate("/register")}
+          >
+            Criar conta
+          </div>
         </form>
 
+      </div>
     </div>
-
-</div>
-);
+  );
 }

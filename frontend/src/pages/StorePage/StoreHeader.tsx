@@ -3,6 +3,9 @@ import { followStore, unfollowStore } from "../../services/stores";
 import SmartImage from "../../components/SmartImage";
 import StoreTypeBadge from "../../components/store/StoreTypeBadge";
 import VerificationBadge from "../../components/VerificationBadge";
+import { Flag } from "lucide-react";
+import { useAuth } from "../../auth/AuthProvider";
+import ReportModal from "../../components/share/ReportModal";
 
 const API_URL = (
   import.meta.env.VITE_API_URL || "http://localhost:3000"
@@ -41,6 +44,9 @@ type?: string;
 
 export default function StoreHeader({ store, stats, viewer }: Props) {
 
+  const { user } = useAuth();
+
+const [reportOpen, setReportOpen] = useState(false);
   const bannerInputRef = useRef<HTMLInputElement>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
@@ -559,34 +565,78 @@ setLocationUrl(store.locationUrl || "");
         </div>
 
         {!viewer.isOwner && (
+  <div
+    style={{
+      display: "flex",
+      flexDirection: "column",
+      gap: 10,
+      width: "100%",
+      maxWidth: 180,
+    }}
+  >
+    {/* SEGUIR BANCA */}
 
-          <button
-            onClick={toggleFollow}
-            disabled={loading}
-            style={{
-              padding: "10px 18px",
-              borderRadius: 8,
-              border: "1px solid var(--border)",
+    <button
+      onClick={toggleFollow}
+      disabled={loading}
+      style={{
+        padding: "10px 18px",
+        borderRadius: 8,
+        border: "1px solid var(--border)",
 
-background: isFollowing
-    ? "var(--primary)"
-    : "var(--surface)",
+        background: isFollowing
+          ? "var(--primary)"
+          : "var(--surface)",
 
-color: isFollowing
-    ? "#fff"
-    : "var(--text)",
-              cursor: "pointer",
-              fontWeight: 600,
-              width: "100%",
-maxWidth: 180,
-            }}
-          >
-            {isFollowing ? "A seguir" : "Seguir"}
-          </button>
+        color: isFollowing
+          ? "#fff"
+          : "var(--text)",
 
-        )}
+        cursor: "pointer",
+        fontWeight: 600,
+        width: "100%",
+      }}
+    >
+      {isFollowing ? "A seguir" : "Seguir"}
+    </button>
 
-      </div>
+    {/* DENUNCIAR BANCA */}
+
+    {user && (
+      <button
+        type="button"
+        onClick={() => setReportOpen(true)}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 7,
+          padding: "9px 12px",
+          borderRadius: 8,
+          border: "1px solid var(--border)",
+          background: "var(--surface)",
+          color: "var(--text-soft)",
+          cursor: "pointer",
+          fontSize: 13,
+          fontWeight: 500,
+          width: "100%",
+        }}
+      >
+        <Flag size={15} />
+        Denunciar banca
+      </button>
+    )}
+  </div>
+)}
+
+</div>
+
+    <ReportModal
+      open={reportOpen}
+      targetType="STORE"
+      targetId={store.id}
+      onClose={() => setReportOpen(false)}
+    />
 
     </div>
   );
