@@ -91,4 +91,15 @@ export class NotificationsController {
     return { success: true };
   }
 
+  @Get(':id/details')
+getNotificationDetails(
+  @Param('id') id: string,
+  @Req() req,
+) {
+  return this.notificationsService.getNotificationDetails(
+    id,
+    req.user.sub,
+  );
+}
+
 }

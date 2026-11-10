@@ -1,0 +1,272 @@
+
+.container {
+  width: 100%;
+  max-width: 850px;
+  margin: 0 auto;
+  padding: 24px;
+  box-sizing: border-box;
+  color: var(--text);
+}
+
+/* =========================================
+   BOTÃO VOLTAR
+========================================= */
+
+.backButton {
+  border: none;
+  background: transparent;
+  color: var(--primary, #2563eb);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 8px 0;
+  margin-bottom: 20px;
+  transition: opacity 0.15s ease;
+}
+
+.backButton:hover {
+  text-decoration: underline;
+  opacity: 0.8;
+}
+
+/* =========================================
+   CABEÇALHO
+========================================= */
+
+.header {
+  margin-bottom: 24px;
+}
+
+.header h2 {
+  margin: 0 0 8px;
+  color: var(--text);
+  font-size: 24px;
+}
+
+.header p {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 14px;
+}
+
+/* =========================================
+   CARTÕES
+========================================= */
+
+.messageCard,
+.detailsCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 22px;
+  margin-bottom: 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.035);
+}
+
+.messageCard p {
+  margin: 12px 0 0;
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.date {
+  color: var(--text-soft);
+  font-size: 12px;
+}
+
+.detailsCard h3 {
+  margin: 0 0 20px;
+  font-size: 18px;
+  color: var(--text);
+}
+
+/* =========================================
+   LINHAS DE INFORMAÇÃO
+========================================= */
+
+.detailRow,
+.statusRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.detailRow:last-of-type {
+  border-bottom: none;
+}
+
+.label {
+  color: var(--text-soft);
+  font-size: 13px;
+}
+
+.detailRow strong {
+  color: var(--text);
+  font-size: 14px;
+  text-align: right;
+}
+
+/* =========================================
+   ESTADOS
+========================================= */
+
+.status {
+  padding: 6px 11px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.success {
+  background: color-mix(in srgb, #16a34a 13%, transparent);
+  color: #16a34a;
+}
+
+.rejected {
+  background: color-mix(in srgb, #ef4444 13%, transparent);
+  color: #ef4444;
+}
+
+/* =========================================
+   AVISO DE PRIVACIDADE
+========================================= */
+
+.privacyNote {
+  margin: 20px 0 0;
+  padding: 13px 15px;
+  border-radius: 8px;
+  background: var(--surface-hover);
+  color: var(--text-soft);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* =========================================
+   ESTADOS DE CARREGAMENTO
+========================================= */
+
+.stateMessage {
+  padding: 35px 20px;
+  text-align: center;
+  color: var(--text-soft);
+}
+
+/* =========================================
+   ERRO
+========================================= */
+
+.errorBox {
+  padding: 22px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--danger) 9%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--danger) 25%, var(--border));
+  color: var(--danger);
+  text-align: center;
+}
+
+.errorBox button {
+  margin-top: 12px;
+  padding: 9px 16px;
+  border: none;
+  border-radius: 7px;
+  background: var(--danger);
+  color: white;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.errorBox button:hover {
+  opacity: 0.85;
+}
+
+/* =========================================
+   CONTEÚDO REMOVIDO
+========================================= */
+
+.removedContent {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 12px;
+  color: var(--text);
+}
+
+.removedText {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.removedProductInfo {
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.removedProductInfo p {
+  margin-top: 6px;
+  color: var(--text-soft);
+}
+
+.removedImages {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.removedImages img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 10px;
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+}
+
+.removedDate {
+  font-size: 0.85rem;
+  color: var(--text-soft);
+}
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 600px) {
+  .container {
+    padding: 16px;
+  }
+
+  .header h2 {
+    font-size: 21px;
+  }
+
+  .messageCard,
+  .detailsCard {
+    padding: 17px;
+  }
+
+  .detailRow,
+  .statusRow {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .detailRow strong {
+    text-align: left;
+  }
+
+  .removedImages {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+}

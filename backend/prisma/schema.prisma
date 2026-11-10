@@ -70,8 +70,12 @@ model User {
   verificationRequestsCreated  VerificationRequest[] @relation("VerificationRequestsCreated")
   verificationRequestsReviewed VerificationRequest[] @relation("VerificationRequestsReviewed")
 
-  reportsCreated  Report[] @relation("ReportReporter")
-  reportsReviewed Report[] @relation("ReportReviewer")
+  reportsCreated                Report[]               @relation("ReportReporter")
+  reportsReviewed               Report[]               @relation("ReportReviewer")
+  administrativeActionsCreated  AdministrativeAction[] @relation("AdministrativeActionCreator")
+  administrativeActionsReversed AdministrativeAction[] @relation("AdministrativeActionReverser")
+
+  isSuspended Boolean @default(false)
 
   @@index([deletedAt])
 }
@@ -431,6 +435,8 @@ model Post {
   images           PostImage[]
   sharedInMessages Message[]
 
+  isActive Boolean @default(true)
+
   @@index([storeId, createdAt])
   @@index([productId])
 }
@@ -572,6 +578,21 @@ enum ReportStatus {
   UNDER_REVIEW
   RESOLVED
   REJECTED
+}
+
+enum AdministrativeActionType {
+  WARNING
+  CONTENT_REMOVAL
+  TEMPORARY_SUSPENSION
+  PERMANENT_SUSPENSION
+}
+
+enum AdministrativeActionStatus {
+  ACTIVE
+  COMPLETED
+  REVERSED
+  EXPIRED
+  CANCELLED
 }
 
 model AuctionBid {
@@ -1364,12 +1385,89 @@ model Report {
 
   reviewNotes String? @db.VarChar(2000)
 
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  reviewedAt DateTime?
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  reviewedAt            DateTime?
+  administrativeActions AdministrativeAction[]
 
   @@index([targetType, targetId])
   @@index([status, createdAt])
   @@index([reporterId, createdAt])
   @@index([reviewedById])
+}
+
+model AdministrativeAction {
+  id String @id @default(uuid())
+
+  // =========================================================
+  // DENÚNCIA QUE ORIGINOU A MEDIDA
+  // =========================================================
+
+  reportId String
+  report   Report @relation(fields: [reportId], references: [id], onDelete: Restrict)
+
+  // =========================================================
+  // ENTIDADE AFETADA
+  // Snapshot do alvo no momento da aplicação.
+  // =========================================================
+
+  targetType ReportTargetType
+  targetId   String
+
+  // =========================================================
+  // TIPO E ESTADO DA MEDIDA
+  // =========================================================
+
+  type   AdministrativeActionType
+  status AdministrativeActionStatus @default(ACTIVE)
+
+  // =========================================================
+  // JUSTIFICAÇÃO
+  // =========================================================
+
+  reason String @db.VarChar(2000)
+
+  // =========================================================
+  // ADMINISTRADOR RESPONSÁVEL
+  // =========================================================
+
+  createdById String
+  createdBy   User   @relation("AdministrativeActionCreator", fields: [createdById], references: [id], onDelete: Restrict)
+
+  // =========================================================
+  // VALIDADE DA MEDIDA
+  // Utilizada principalmente para suspensão temporária.
+  // =========================================================
+
+  startsAt DateTime  @default(now())
+  endsAt   DateTime?
+
+  // =========================================================
+  // REVERSÃO DA MEDIDA
+  // =========================================================
+
+  reversedAt     DateTime?
+  reversedById   String?
+  reversedBy     User?     @relation("AdministrativeActionReverser", fields: [reversedById], references: [id], onDelete: Restrict)
+  reversalReason String?   @db.VarChar(2000)
+
+  // =========================================================
+  // DATAS
+  // =========================================================
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  previousState Json?
+
+  // =========================================================
+  // ÍNDICES
+  // =========================================================
+
+  @@index([reportId])
+  @@index([targetType, targetId])
+  @@index([type, status])
+  @@index([createdById])
+  @@index([reversedById])
+  @@index([endsAt])
+  @@index([createdAt])
 }

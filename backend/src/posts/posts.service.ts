@@ -60,8 +60,9 @@ export class PostsService {
   async getStoreFeed(storeId: string, cursor?: string, limit = 10) {
     const posts = await this.prisma.post.findMany({
     where: {
-        storeId,
-    },
+  storeId,
+  isActive: true,
+},
 
     take: limit + 1,
 
@@ -166,8 +167,11 @@ let region =
 
   const posts = await this.prisma.post.findMany({
   where: {
-    store: {
-      countryCode: country,
+  isActive: true,
+
+  store: {
+    isActive: true,
+    countryCode: country,
 
       ...(region
         ? {
@@ -255,14 +259,18 @@ async getFollowingFeed(userId: string, params: { cursor?: string; limit: number 
   const posts = await this.prisma.post.findMany({
 
     where: {
-      store: {
-        followers: {
-          some: {
-            userId: userId
-          }
-        }
-      }
+  isActive: true,
+
+  store: {
+    isActive: true,
+
+    followers: {
+      some: {
+        userId: userId,
+      },
     },
+  },
+},
 
     take: params.limit,
 
@@ -351,6 +359,11 @@ async findOne(id: string) {
       "Publicação não encontrada",
     );
   }
+  if (!post || !post.isActive) {
+  throw new NotFoundException(
+    "Publicação não encontrada",
+  );
+}
 
   return post;
 }

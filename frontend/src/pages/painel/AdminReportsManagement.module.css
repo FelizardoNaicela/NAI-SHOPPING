@@ -455,3 +455,290 @@
     gap: 8px;
   }
 }
+
+
+/* Medidas administrativas */
+
+.administrativeSection {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-color, #ddd);
+}
+
+.administrativeHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--primary-color, #2563eb);
+}
+
+.administrativeHeader h3 {
+  margin: 0 0 5px;
+  color: var(--text-primary, inherit);
+  font-size: 17px;
+}
+
+.administrativeHeader p {
+  margin: 0;
+  color: var(--text-secondary, #777);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.createActionBox {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--border-color, #ddd);
+  border-radius: 12px;
+  background: var(--card-bg, transparent);
+}
+
+.createActionBox h4,
+.actionHistory h4 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.formGroup label,
+.reversalArea label {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.formGroup select,
+.formGroup input,
+.formGroup textarea,
+.reversalArea textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 12px;
+  border: 1px solid var(--border-color, #ddd);
+  border-radius: 9px;
+  outline: none;
+  background: var(--input-bg, var(--card-bg, transparent));
+  color: var(--text-primary, inherit);
+  font: inherit;
+  font-size: 13px;
+}
+
+.formGroup select:focus,
+.formGroup input:focus,
+.formGroup textarea:focus,
+.reversalArea textarea:focus {
+  border-color: var(--primary-color, #2563eb);
+}
+
+.formGroup textarea,
+.reversalArea textarea {
+  resize: vertical;
+  min-height: 85px;
+}
+
+.characterCount {
+  align-self: flex-end;
+  color: var(--text-secondary, #777);
+  font-size: 11px;
+}
+
+.applyActionButton,
+.reverseButton,
+.confirmReversalButton,
+.cancelReversalButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: fit-content;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.applyActionButton {
+  color: #fff;
+  background: var(--primary-color, #2563eb);
+}
+
+.reverseButton {
+  color: #b45309;
+  background: rgba(245, 158, 11, 0.12);
+}
+
+.confirmReversalButton {
+  color: #fff;
+  background: #15803d;
+}
+
+.cancelReversalButton {
+  color: var(--text-primary, inherit);
+  background: var(--hover-bg, rgba(127, 127, 127, 0.1));
+  border: 1px solid var(--border-color, #ddd);
+}
+
+.applyActionButton:hover,
+.reverseButton:hover,
+.confirmReversalButton:hover,
+.cancelReversalButton:hover {
+  opacity: 0.85;
+}
+
+.applyActionButton:disabled,
+.reverseButton:disabled,
+.confirmReversalButton:disabled,
+.cancelReversalButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.actionHistory {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.emptyActions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  padding: 25px 15px;
+  border: 1px dashed var(--border-color, #ddd);
+  border-radius: 10px;
+  color: var(--text-secondary, #777);
+  font-size: 13px;
+  text-align: center;
+}
+
+.administrativeActionList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.administrativeActionCard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 15px;
+  border: 1px solid var(--border-color, #ddd);
+  border-radius: 11px;
+  background: var(--card-bg, transparent);
+}
+
+.administrativeActionTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.administrativeActionTop > div {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+
+.administrativeActionTop strong {
+  font-size: 13px;
+}
+
+.actionStatus {
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.actionStatusActive {
+  color: #15803d;
+  background: rgba(34, 197, 94, 0.13);
+}
+
+.actionStatusReversed {
+  color: #b45309;
+  background: rgba(245, 158, 11, 0.13);
+}
+
+.actionStatusExpired,
+.actionStatusCompleted {
+  color: #1d4ed8;
+  background: rgba(59, 130, 246, 0.13);
+}
+
+.actionStatusCancelled {
+  color: var(--text-secondary, #777);
+  background: var(--hover-bg, rgba(127, 127, 127, 0.1));
+}
+
+.actionDate {
+  color: var(--text-secondary, #777);
+  font-size: 11px;
+}
+
+.actionInformation {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.actionInformation p,
+.reversalInformation p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.reversalInformation {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 5px;
+  padding: 11px;
+  border-radius: 8px;
+  background: var(--hover-bg, rgba(127, 127, 127, 0.07));
+}
+
+.reversalArea {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color, #ddd);
+}
+
+.reversalButtons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 650px) {
+  .applyActionButton,
+  .reverseButton,
+  .confirmReversalButton,
+  .cancelReversalButton {
+    width: 100%;
+  }
+
+  .reversalButtons {
+    flex-direction: column;
+  }
+}

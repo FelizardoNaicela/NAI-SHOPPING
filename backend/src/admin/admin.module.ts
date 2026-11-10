@@ -19,12 +19,15 @@ import {
   PaymentsModule,
 } from '../payments/payments.module';
 
+import { NotificationsModule } from '../notifications/notifications.module';
+
 @Module({
 
   imports: [
-    PrismaModule,
-    PaymentsModule,
-  ],
+  PrismaModule,
+  PaymentsModule,
+  NotificationsModule,
+],
 
   controllers: [
     AdminController,

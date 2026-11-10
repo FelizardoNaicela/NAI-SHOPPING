@@ -3,7 +3,7 @@ import { followStore, unfollowStore } from "../../services/stores";
 import SmartImage from "../../components/SmartImage";
 import StoreTypeBadge from "../../components/store/StoreTypeBadge";
 import VerificationBadge from "../../components/VerificationBadge";
-import { Flag } from "lucide-react";
+import { Flag, MoreVertical } from "lucide-react";
 import { useAuth } from "../../auth/AuthProvider";
 import ReportModal from "../../components/share/ReportModal";
 
@@ -69,6 +69,8 @@ const [locationKeyword, setLocationKeyword] = useState(
 
 const [editingInfo, setEditingInfo] = useState(false);
 const [savingInfo, setSavingInfo] = useState(false);
+
+const [actionsOpen, setActionsOpen] = useState(false);
 
   async function toggleFollow() {
 
@@ -564,14 +566,15 @@ setLocationUrl(store.locationUrl || "");
 
         </div>
 
-        {!viewer.isOwner && (
+       
+{!viewer.isOwner && (
   <div
     style={{
       display: "flex",
-      flexDirection: "column",
-      gap: 10,
+      alignItems: "center",
+      gap: 8,
       width: "100%",
-      maxWidth: 180,
+      maxWidth: 210,
     }}
   >
     {/* SEGUIR BANCA */}
@@ -580,54 +583,93 @@ setLocationUrl(store.locationUrl || "");
       onClick={toggleFollow}
       disabled={loading}
       style={{
+        flex: 1,
         padding: "10px 18px",
         borderRadius: 8,
-        border: "1px solid var(--border)",
-
+         border: "1px solid var(--border)",
         background: isFollowing
           ? "var(--primary)"
           : "var(--surface)",
-
-        color: isFollowing
-          ? "#fff"
-          : "var(--text)",
-
+        color: isFollowing ? "#fff" : "var(--text)",
         cursor: "pointer",
-        fontWeight: 600,
-        width: "100%",
+         fontWeight: 600,
       }}
     >
       {isFollowing ? "A seguir" : "Seguir"}
     </button>
 
-    {/* DENUNCIAR BANCA */}
+    {/* MENU DE OUTRAS AÇÕES */}
 
     {user && (
-      <button
-        type="button"
-        onClick={() => setReportOpen(true)}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 7,
-          padding: "9px 12px",
-          borderRadius: 8,
-          border: "1px solid var(--border)",
-          background: "var(--surface)",
-          color: "var(--text-soft)",
-          cursor: "pointer",
-          fontSize: 13,
-          fontWeight: 500,
-          width: "100%",
-        }}
-      >
-        <Flag size={15} />
-        Denunciar banca
-      </button>
+      <div style={{ position: "relative", flexShrink: 0 }}>
+        <button
+          type="button"
+          title="Mais opções"
+          aria-label="Mais opções da banca"
+          aria-expanded={actionsOpen}
+          onClick={() => setActionsOpen(open => !open)}
+          style={{
+            width: 38,
+            height: 38,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: 8,
+            border: "1px solid var(--border)",
+            background: "var(--surface)",
+            color: "var(--text-soft)",
+            cursor: "pointer",
+          }}
+        >
+          <MoreVertical size={20} />
+        </button>
+
+        {actionsOpen && (
+          <div
+            style={{
+              position: "absolute",
+              top: 44,
+              right: 0,
+              width: 190,
+              padding: 6,
+              border: "1px solid var(--border)",
+              borderRadius: 10,
+              background: "var(--surface)",
+              boxShadow: "var(--shadow-lg)",
+              zIndex: 50,
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => {
+                setActionsOpen(false);
+                setReportOpen(true);
+              }}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 9,
+                width: "100%",
+                padding: "10px",
+                border: "none",
+                borderRadius: 7,
+                background: "transparent",
+                color: "#dc2626",
+                fontSize: 13,
+                textAlign: "left",
+                cursor: "pointer",
+              }}
+            >
+              <Flag size={16} />
+              Denunciar banca
+            </button>
+          </div>
+        )}
+      </div>
     )}
   </div>
 )}
+
 
 </div>
 

@@ -7,6 +7,10 @@ import {
 } from '@nestjs/common';
 
 import {
+  AdminRole,
+  AdminStatus,
+  Notification,
+  Prisma,
   ReportReason,
   ReportStatus,
   ReportTargetType,
@@ -15,11 +19,14 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateReportDto } from './dto/create-report.dto';
 
+import { NotificationsService } from '../notifications/notifications.service';
+
 @Injectable()
 export class ReportsService {
   constructor(
-    private readonly prisma: PrismaService,
-  ) {}
+  private readonly prisma: PrismaService,
+  private readonly notificationsService: NotificationsService,
+) {}
 
   // =====================================================
   // VALIDAR SE O ALVO DA DENÚNCIA EXISTE
@@ -188,7 +195,14 @@ export class ReportsService {
     // Registar a denúncia.
     // Nenhuma banca, publicação, produto ou conta
     // será suspensa automaticamente.
-    return this.prisma.report.create({
+   // =====================================================
+// REGISTAR DENÚNCIA E CRIAR NOTIFICAÇÕES
+// NA MESMA TRANSAÇÃO
+// =====================================================
+
+const result = await this.prisma.$transaction(
+  async (tx) => {
+    const report = await tx.report.create({
       data: {
         reporterId,
         targetType: dto.targetType,
@@ -207,6 +221,37 @@ export class ReportsService {
         createdAt: true,
       },
     });
+
+    const notifications =
+      await this.notifyReportManagers(
+        tx,
+        report.id,
+        reporterId,
+        dto.targetType,
+        targetId,
+      );
+
+    return {
+      report,
+      notifications,
+    };
+  },
+);
+
+// =====================================================
+// EMITIR WEBSOCKET SOMENTE DEPOIS DO COMMIT
+// =====================================================
+
+await Promise.all(
+  result.notifications.map((item) =>
+    this.notificationsService.emitCreated(
+      item.userId,
+      item.notification,
+    ),
+  ),
+);
+
+return result.report;
   }
 
   // =====================================================
@@ -268,4 +313,154 @@ export class ReportsService {
       },
     };
   }
+
+  // =====================================================
+// OBTER A BANCA ASSOCIADA AO ALVO DA DENÚNCIA
+// =====================================================
+
+private async getTargetStore(
+  tx: Prisma.TransactionClient,
+  targetType: ReportTargetType,
+  targetId: string,
+) {
+  const storeSelect = {
+    id: true,
+    countryCode: true,
+    region: true,
+    regionalManagementLocked: true,
+  } as const;
+
+  if (targetType === ReportTargetType.STORE) {
+    return tx.store.findUnique({
+      where: { id: targetId },
+      select: storeSelect,
+    });
+  }
+
+  if (targetType === ReportTargetType.PRODUCT) {
+    const product = await tx.product.findUnique({
+      where: { id: targetId },
+      select: {
+        store: {
+          select: storeSelect,
+        },
+      },
+    });
+
+    return product?.store ?? null;
+  }
+
+  if (targetType === ReportTargetType.POST) {
+    const post = await tx.post.findUnique({
+      where: { id: targetId },
+      select: {
+        store: {
+          select: storeSelect,
+        },
+      },
+    });
+
+    return post?.store ?? null;
+  }
+
+  return null;
+}
+
+// =====================================================
+// NOTIFICAR ADMINISTRADORES QUE PODEM GERIR A DENÚNCIA
+// =====================================================
+
+// =====================================================
+// NOTIFICAR ADMINISTRADORES QUE PODEM GERIR A DENÚNCIA
+// =====================================================
+
+private async notifyReportManagers(
+  tx: Prisma.TransactionClient,
+  reportId: string,
+  reporterId: string,
+  targetType: ReportTargetType,
+  targetId: string,
+) {
+  const isUserReport =
+    targetType === ReportTargetType.USER;
+
+  const targetStore = isUserReport
+    ? null
+    : await this.getTargetStore(
+        tx,
+        targetType,
+        targetId,
+      );
+
+  if (!isUserReport && !targetStore) {
+    return [];
+  }
+
+  const regionalAdminCondition =
+    !isUserReport &&
+    !targetStore!.regionalManagementLocked
+      ? [
+          {
+            adminRole: AdminRole.REGIONAL_ADMIN,
+            canManageReports: true,
+            region: targetStore!.region,
+            user: {
+              countryCode: {
+                equals: targetStore!.countryCode,
+                mode: 'insensitive' as const,
+              },
+            },
+          },
+        ]
+      : [];
+
+  const admins = await tx.adminProfile.findMany({
+    where: {
+      status: AdminStatus.ACTIVE,
+      OR: [
+        {
+          adminRole: AdminRole.SUPER_ADMIN,
+        },
+        ...regionalAdminCondition,
+      ],
+    },
+    select: {
+      userId: true,
+    },
+  });
+
+  // O tipo explícito resolve o erro never[].
+  const notifications: {
+    userId: string;
+    notification: Notification;
+  }[] = [];
+
+  for (const admin of admins) {
+    // Não notificar o próprio denunciante.
+    if (admin.userId === reporterId) {
+      continue;
+    }
+
+    const notification =
+      await this.notificationsService.createInTransaction(
+        tx,
+        admin.userId,
+        'NEW_REPORT',
+        'Foi recebida uma nova denúncia que precisa de análise.',
+        {
+          reportId,
+          targetType,
+        },
+      );
+
+    if (notification) {
+      notifications.push({
+        userId: admin.userId,
+        notification,
+      });
+    }
+  }
+
+  return notifications;
+}
 }

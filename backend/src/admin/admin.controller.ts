@@ -18,6 +18,14 @@ import {
   ReportStatus,
 } from '@prisma/client';
 
+import {
+  CreateAdministrativeActionDto,
+} from './create-administrative-action.dto';
+
+import {
+  ReverseAdministrativeActionDto,
+} from './reverse-administrative-action.dto';
+
 import { JwtAuthGuard } from '../auth/jwt/jwt-auth.guard';
 
 import { PaymentsService } from '../payments/payments.service';
@@ -1025,6 +1033,105 @@ async rejectReport(
     req.user.sub,
     reportId,
     body.reviewNotes,
+  );
+}
+
+// =========================================================
+// APLICAR MEDIDA ADMINISTRATIVA
+// =========================================================
+//
+// POST /admin/reports/:reportId/actions
+//
+// Exemplo de advertência:
+//
+// {
+//   "type": "WARNING",
+//   "reason": "Foi identificada uma violação das regras."
+// }
+//
+// Exemplo de suspensão temporária:
+//
+// {
+//   "type": "TEMPORARY_SUSPENSION",
+//   "reason": "Reincidência na violação das regras.",
+//   "endsAt": "2026-12-01T12:00:00.000Z"
+// }
+// =========================================================
+
+@Post('reports/:reportId/actions')
+@RequirePermission('canManageReports')
+async createAdministrativeAction(
+  @Req()
+  req: AuthenticatedRequest,
+
+  @Param('reportId')
+  reportId: string,
+
+  @Body()
+  body: CreateAdministrativeActionDto,
+) {
+  return this.adminService.createAdministrativeAction(
+    req.user.sub,
+    {
+      reportId,
+      type: body.type,
+      reason: body.reason,
+      endsAt: body.endsAt,
+    },
+  );
+}
+
+// =========================================================
+// REVERTER MEDIDA ADMINISTRATIVA
+// =========================================================
+//
+// PATCH /admin/actions/:actionId/reverse
+//
+// Body:
+//
+// {
+//   "reversalReason": "A decisão foi revista."
+// }
+// =========================================================
+
+@Patch('actions/:actionId/reverse')
+@RequirePermission('canManageReports')
+async reverseAdministrativeAction(
+  @Req()
+  req: AuthenticatedRequest,
+
+  @Param('actionId')
+  actionId: string,
+
+  @Body()
+  body: ReverseAdministrativeActionDto,
+) {
+  return this.adminService.reverseAdministrativeAction(
+    req.user.sub,
+    actionId,
+    body.reversalReason,
+  );
+}
+
+// =========================================================
+// HISTÓRICO DE MEDIDAS DE UMA DENÚNCIA
+// =========================================================
+//
+// GET /admin/reports/:reportId/actions
+// =========================================================
+
+@Get('reports/:reportId/actions')
+@RequirePermission('canManageReports')
+async listAdministrativeActions(
+  @Req()
+  req: AuthenticatedRequest,
+
+  @Param('reportId')
+  reportId: string,
+) {
+  return this.adminService.listAdministrativeActions(
+    req.user.sub,
+    reportId,
   );
 }
     // =========================================================

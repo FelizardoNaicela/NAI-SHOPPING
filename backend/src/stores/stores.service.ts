@@ -174,11 +174,15 @@ export class StoresService {
           },
 
           _count: {
-            select: {
-              followers: true,
-              products: true,
-            },
-          },
+  select: {
+    followers: true,
+    products: {
+      where: {
+        isPublished: true,
+      },
+    },
+  },
+},
         },
       });
 
@@ -199,52 +203,53 @@ export class StoresService {
         : false;
 
     const categories =
-      await this.prisma.category.findMany({
-        where: {
-          products: {
-            some: {
-              storeId,
-            },
-          },
+  await this.prisma.category.findMany({
+    where: {
+      products: {
+        some: {
+          storeId,
+          isPublished: true,
         },
-      });
+      },
+    },
+  });
 
     const sidebarFeeds =
       await Promise.all(
         categories.map(
           async category => {
             const products =
-              await this.prisma.product.findMany({
-                where: {
-                  storeId,
-                  categoryId:
-                    category.id,
-                },
+  await this.prisma.product.findMany({
+    where: {
+      storeId,
+      categoryId: category.id,
+      isPublished: true,
+    },
 
-                orderBy: {
-                  createdAt: 'desc',
-                },
+    orderBy: {
+      createdAt: 'desc',
+    },
 
-                take: 6,
+    take: 6,
 
-                select: {
-                  id: true,
-                  name: true,
-                  price: true,
-                  category: true,
-                  imageUrl: true,
-                  type: true,
-                },
-              });
+    select: {
+      id: true,
+      name: true,
+      price: true,
+      category: true,
+      imageUrl: true,
+      type: true,
+    },
+  });
 
             const totalInCategory =
-              await this.prisma.product.count({
-                where: {
-                  storeId,
-                  categoryId:
-                    category.id,
-                },
-              });
+  await this.prisma.product.count({
+    where: {
+      storeId,
+      categoryId: category.id,
+      isPublished: true,
+    },
+  });
 
             return {
               category: {
@@ -349,8 +354,9 @@ locationKeyword: store.locationKeyword,
     const products =
       await this.prisma.product.findMany({
         where: {
-          storeId,
-        },
+  storeId,
+  isPublished: true,
+},
 
         orderBy: {
           createdAt: 'desc',

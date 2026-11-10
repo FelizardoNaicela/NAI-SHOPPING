@@ -3,7 +3,12 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  Logger,
 } from '@nestjs/common';
+
+import {
+  Cron,
+} from '@nestjs/schedule';
 
 import {
   AdminRole,
@@ -16,9 +21,14 @@ import {
   ReportStatus,
   ReportTargetType,
   ReportReason,
+  AdministrativeActionType,
+  AdministrativeActionStatus,
+  Prisma,
+  Notification,
 } from '@prisma/client';
 
-import { InternalServerErrorException } from '@nestjs/common';
+import { NotificationsService } from '../notifications/notifications.service';
+
 
 import { PrismaService } from '../prisma/prisma.service';
 import {
@@ -53,12 +63,13 @@ interface SetNationalRankingAuctionData {
 @Injectable()
 export class AdminService {
   constructor(
-  private readonly prisma: PrismaService,
-
-  private readonly paymentsService: PaymentsService,
-
+   private readonly prisma: PrismaService,
+   private readonly paymentsService: PaymentsService,
   private readonly paymentGatewayService: PaymentGatewayService,
+  private readonly notificationsService: NotificationsService,
 ) {}
+
+private readonly logger = new Logger(AdminService.name);
 
   // =========================================================
   // ADMIN ATUAL
@@ -5838,47 +5849,86 @@ const region = requester.region!
       );
     }
 
-    const updated = await this.prisma.report.updateMany({
-      where: {
-        id: reportId,
-        status: ReportStatus.UNDER_REVIEW,
-        reviewedById: report.reviewedById,
-      },
-      data: {
-        status,
-        reviewedById: requesterId,
-        reviewNotes: notes || null,
-        reviewedAt: new Date(),
-      },
-    });
+  const result = await this.prisma.$transaction(async (tx) => {
+  const updated = await tx.report.updateMany({
+    where: {
+      id: reportId,
+      status: ReportStatus.UNDER_REVIEW,
+      reviewedById: report.reviewedById,
+    },
+    data: {
+      status,
+      reviewedById: requesterId,
+      reviewNotes: notes || null,
+      reviewedAt: new Date(),
+    },
+  });
 
-    if (updated.count !== 1) {
-      throw new BadRequestException(
-        'A denúncia foi alterada por outra operação. Atualiza os dados.',
-      );
-    }
+  if (updated.count !== 1) {
+    throw new BadRequestException(
+      'A denúncia foi alterada por outra operação. Atualiza os dados.',
+    );
+  }
 
-    return this.prisma.report.findUnique({
-      where: { id: reportId },
-      include: {
-        reporter: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            email: true,
-          },
-        },
-        reviewedBy: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            email: true,
-          },
+  const notificationType =
+    status === ReportStatus.RESOLVED
+      ? 'REPORT_RESOLVED'
+      : 'REPORT_REJECTED';
+
+  const message =
+    status === ReportStatus.RESOLVED
+      ? 'A tua denúncia foi analisada e concluída.'
+      : 'A tua denúncia foi analisada e não foi aceite.';
+
+  const notification =
+    await this.notificationsService.createInTransaction(
+      tx,
+      report.reporterId,
+      notificationType,
+      message,
+      {
+        reportId: report.id,
+        targetType: report.targetType,
+        targetId: report.targetId,
+      },
+    );
+
+  const updatedReport = await tx.report.findUnique({
+    where: { id: reportId },
+    include: {
+      reporter: {
+        select: {
+          id: true,
+          name: true,
+          username: true,
+          email: true,
         },
       },
-    });
+      reviewedBy: {
+        select: {
+          id: true,
+          name: true,
+          username: true,
+          email: true,
+        },
+      },
+    },
+  });
+
+  return {
+    report: updatedReport,
+    notification,
+  };
+});
+
+// Só depois do commit emitimos a notificação por WebSocket.
+await this.notificationsService.emitCreated(
+  report.reporterId,
+  result.notification,
+);
+
+return result.report;
+
   }
 
   // =========================================================
@@ -5924,4 +5974,980 @@ private assertValidRegion(countryCode: string, region: string) {
   if (!valid?.includes(region)) {
     throw new BadRequestException('Região inválida para o país.');
   }
-}}
+}
+
+  // =========================================================
+  // CRIAR E APLICAR MEDIDA ADMINISTRATIVA
+  // =========================================================
+
+  async createAdministrativeAction(
+    requesterId: string,
+    data: {
+      reportId: string;
+      type: AdministrativeActionType;
+      reason: string;
+      endsAt?: string;
+    },
+  ) {
+    const requester = await this.requireReportManager(requesterId);
+
+    const report = await this.prisma.report.findUnique({
+      where: {
+        id: data.reportId,
+      },
+    });
+
+    if (!report) {
+      throw new NotFoundException('Denúncia não encontrada.');
+    }
+
+    await this.assertReportAccess(
+      requester,
+      report.targetType,
+      report.targetId,
+    );
+
+    if (report.status !== ReportStatus.RESOLVED) {
+      throw new BadRequestException(
+        'Só é possível aplicar medidas administrativas a denúncias resolvidas.',
+      );
+    }
+
+    if (
+      report.reviewedById !== requesterId &&
+      requester.adminRole !== AdminRole.SUPER_ADMIN
+    ) {
+      throw new ForbiddenException(
+        'Somente o administrador responsável ou o SUPER_ADMIN pode aplicar uma medida nesta denúncia.',
+      );
+    }
+
+    const reason = data.reason?.trim();
+
+    if (!reason) {
+      throw new BadRequestException(
+        'O motivo da medida administrativa é obrigatório.',
+      );
+    }
+
+    if (reason.length > 2000) {
+      throw new BadRequestException(
+        'O motivo não pode ultrapassar 2000 caracteres.',
+      );
+    }
+
+    // =======================================================
+    // VALIDAR O TIPO DE MEDIDA E A ENTIDADE
+    // =======================================================
+
+    const isTemporary =
+      data.type === AdministrativeActionType.TEMPORARY_SUSPENSION;
+
+    const isPermanent =
+      data.type === AdministrativeActionType.PERMANENT_SUSPENSION;
+
+    const isSuspension = isTemporary || isPermanent;
+
+    const isRemoval =
+      data.type === AdministrativeActionType.CONTENT_REMOVAL;
+
+    if (
+      isRemoval &&
+      report.targetType !== ReportTargetType.PRODUCT &&
+      report.targetType !== ReportTargetType.POST
+    ) {
+      throw new BadRequestException(
+        'A remoção de conteúdo só pode ser aplicada a produtos ou publicações.',
+      );
+    }
+
+    if (
+      isSuspension &&
+      report.targetType !== ReportTargetType.STORE &&
+      report.targetType !== ReportTargetType.USER
+    ) {
+      throw new BadRequestException(
+        'A suspensão só pode ser aplicada a uma banca ou a um utilizador.',
+      );
+    }
+
+        // =======================================================
+    // IMPEDIR SUSPENSÕES SIMULTÂNEAS NA MESMA ENTIDADE
+    // =======================================================
+
+    if (isSuspension) {
+      const existingSuspension =
+        await this.prisma.administrativeAction.findFirst({
+          where: {
+            targetType: report.targetType,
+            targetId: report.targetId,
+            type: {
+              in: [
+                AdministrativeActionType.TEMPORARY_SUSPENSION,
+                AdministrativeActionType.PERMANENT_SUSPENSION,
+              ],
+            },
+            status: AdministrativeActionStatus.ACTIVE,
+          },
+        });
+
+      if (existingSuspension) {
+        throw new BadRequestException(
+          'Esta entidade já possui uma suspensão activa. Reverte ou aguarda o término da suspensão existente.',
+        );
+      }
+    }
+
+    let endsAt: Date | null = null;
+
+    if (isTemporary) {
+      if (!data.endsAt) {
+        throw new BadRequestException(
+          'A suspensão temporária precisa de uma data de término.',
+        );
+      }
+
+      endsAt = new Date(data.endsAt);
+
+      if (
+        Number.isNaN(endsAt.getTime()) ||
+        endsAt.getTime() <= Date.now()
+      ) {
+        throw new BadRequestException(
+          'A data de término da suspensão precisa ser válida e futura.',
+        );
+      }
+    } else if (data.endsAt) {
+      throw new BadRequestException(
+        'Apenas uma suspensão temporária pode ter data de término.',
+      );
+    }
+
+    // =======================================================
+    // APLICAR A MEDIDA E REGISTAR O HISTÓRICO
+    // NUMA ÚNICA TRANSAÇÃO
+    // =======================================================
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      let previousState: Record<string, boolean> | undefined;
+
+      // -----------------------------------------------------
+      // REMOÇÃO DE PRODUTO
+      // -----------------------------------------------------
+
+      if (
+        isRemoval &&
+        report.targetType === ReportTargetType.PRODUCT
+      ) {
+        const product = await tx.product.findUnique({
+          where: {
+            id: report.targetId,
+          },
+          select: {
+            id: true,
+            isPublished: true,
+          },
+        });
+
+        if (!product) {
+          throw new NotFoundException(
+            'O produto associado à denúncia não foi encontrado.',
+          );
+        }
+
+        previousState = {
+          isPublished: product.isPublished,
+        };
+
+        await tx.product.update({
+          where: {
+            id: product.id,
+          },
+          data: {
+            isPublished: false,
+          },
+        });
+      }
+
+      // -----------------------------------------------------
+      // REMOÇÃO DE PUBLICAÇÃO
+      // -----------------------------------------------------
+
+      if (
+        isRemoval &&
+        report.targetType === ReportTargetType.POST
+      ) {
+        const post = await tx.post.findUnique({
+          where: {
+            id: report.targetId,
+          },
+          select: {
+            id: true,
+            isActive: true,
+          },
+        });
+
+        if (!post) {
+          throw new NotFoundException(
+            'A publicação associada à denúncia não foi encontrada.',
+          );
+        }
+
+        previousState = {
+          isActive: post.isActive,
+        };
+
+        await tx.post.update({
+          where: {
+            id: post.id,
+          },
+          data: {
+            isActive: false,
+          },
+        });
+      }
+
+      // -----------------------------------------------------
+      // SUSPENSÃO DE BANCA
+      // -----------------------------------------------------
+
+      if (
+        isSuspension &&
+        report.targetType === ReportTargetType.STORE
+      ) {
+        const store = await tx.store.findUnique({
+          where: {
+            id: report.targetId,
+          },
+          select: {
+            id: true,
+            isActive: true,
+          },
+        });
+
+        if (!store) {
+          throw new NotFoundException(
+            'A banca associada à denúncia não foi encontrada.',
+          );
+        }
+
+        previousState = {
+          isActive: store.isActive,
+        };
+
+        await tx.store.update({
+          where: {
+            id: store.id,
+          },
+          data: {
+            isActive: false,
+          },
+        });
+      }
+
+      // -----------------------------------------------------
+      // SUSPENSÃO DE UTILIZADOR
+      // -----------------------------------------------------
+
+      if (
+        isSuspension &&
+        report.targetType === ReportTargetType.USER
+      ) {
+        const user = await tx.user.findUnique({
+          where: {
+            id: report.targetId,
+          },
+          select: {
+            id: true,
+            isSuspended: true,
+          },
+        });
+
+        if (!user) {
+          throw new NotFoundException(
+            'O utilizador associado à denúncia não foi encontrado.',
+          );
+        }
+
+        previousState = {
+          isSuspended: user.isSuspended,
+        };
+
+        await tx.user.update({
+          where: {
+            id: user.id,
+          },
+          data: {
+            isSuspended: true,
+          },
+        });
+      }
+
+      // -----------------------------------------------------
+      // REGISTAR A MEDIDA ADMINISTRATIVA
+      // -----------------------------------------------------
+
+      const createdAction = await tx.administrativeAction.create({
+  data: {
+    reportId: report.id,
+    targetType: report.targetType,
+    targetId: report.targetId,
+    type: data.type,
+    reason,
+    createdById: requesterId,
+    startsAt: new Date(),
+    endsAt,
+    ...(previousState
+      ? {
+          previousState: previousState as any,
+        }
+      : {}),
+  },
+  include: {
+    createdBy: {
+      select: {
+        id: true,
+        name: true,
+        username: true,
+        email: true,
+      },
+    },
+    report: {
+      select: {
+        id: true,
+        status: true,
+        targetType: true,
+        targetId: true,
+      },
+    },
+  },
+});
+
+const recipient =
+  await this.getAdministrativeNotificationRecipient(
+    tx,
+    report.targetType,
+    report.targetId,
+  );
+
+
+let notification: Notification | null = null;
+
+if (recipient) {
+  let notificationType:
+    | 'ADMIN_WARNING'
+    | 'CONTENT_REMOVED'
+    | 'ADMIN_SUSPENSION';
+
+  let message: string;
+
+  if (data.type === AdministrativeActionType.WARNING) {
+    notificationType = 'ADMIN_WARNING';
+    message = 'Recebeste uma advertência administrativa.';
+  } else if (isRemoval) {
+    notificationType = 'CONTENT_REMOVED';
+    message =
+      'Um conteúdo associado à tua banca foi removido por decisão administrativa.';
+  } else {
+    notificationType = 'ADMIN_SUSPENSION';
+    message = isTemporary
+      ? 'A tua conta ou banca foi suspensa temporariamente.'
+      : 'A tua conta ou banca foi suspensa permanentemente.';
+  }
+
+  const meta =
+    notificationType === 'CONTENT_REMOVED'
+      ? {
+          reportId: report.id,
+          administrativeActionId: createdAction.id,
+          targetType: report.targetType as 'PRODUCT' | 'POST',
+          targetId: report.targetId,
+          storeId: recipient.storeId,
+        }
+      : notificationType === 'ADMIN_SUSPENSION'
+        ? {
+            reportId: report.id,
+            administrativeActionId: createdAction.id,
+            targetType: report.targetType as 'STORE' | 'USER',
+            targetId: report.targetId,
+            endsAt: endsAt?.toISOString(),
+            permanent: isPermanent,
+          }
+        : {
+            reportId: report.id,
+            administrativeActionId: createdAction.id,
+            targetType: report.targetType,
+            targetId: report.targetId,
+          };
+
+  notification =
+    await this.notificationsService.createInTransaction(
+      tx,
+      recipient.userId,
+      notificationType,
+      message,
+      meta,
+    );
+}
+
+return {
+  action: createdAction,
+  notificationUserId: recipient?.userId ?? null,
+  notification,
+};
+    });
+
+    if (result.notificationUserId) {
+  await this.notificationsService.emitCreated(
+    result.notificationUserId,
+    result.notification,
+  );
+}
+
+return result.action;
+  }
+
+    // =========================================================
+  // REVERTER MEDIDA ADMINISTRATIVA
+  // =========================================================
+
+  async reverseAdministrativeAction(
+    requesterId: string,
+    actionId: string,
+    reversalReason: string,
+  ) {
+    const requester = await this.requireReportManager(requesterId);
+
+    const reason = reversalReason?.trim();
+
+    if (!reason) {
+      throw new BadRequestException(
+        'O motivo da reversão é obrigatório.',
+      );
+    }
+
+    if (reason.length > 2000) {
+      throw new BadRequestException(
+        'O motivo da reversão não pode ultrapassar 2000 caracteres.',
+      );
+    }
+
+    const action = await this.prisma.administrativeAction.findUnique({
+      where: {
+        id: actionId,
+      },
+      include: {
+        report: true,
+      },
+    });
+
+    if (!action) {
+      throw new NotFoundException(
+        'Medida administrativa não encontrada.',
+      );
+    }
+
+    await this.assertReportAccess(
+      requester,
+      action.targetType,
+      action.targetId,
+    );
+
+    if (action.status !== AdministrativeActionStatus.ACTIVE) {
+      throw new BadRequestException(
+        'Só é possível reverter medidas administrativas activas.',
+      );
+    }
+
+    if (!action.previousState && action.type !== AdministrativeActionType.WARNING) {
+      throw new BadRequestException(
+        'Não foi encontrado o estado anterior necessário para reverter esta medida.',
+      );
+    }
+
+const result = await this.prisma.$transaction(async (tx) => {
+      // -----------------------------------------------------
+      // RESTAURAR ESTADO DO PRODUTO
+      // -----------------------------------------------------
+
+      if (
+        action.type === AdministrativeActionType.CONTENT_REMOVAL &&
+        action.targetType === ReportTargetType.PRODUCT
+      ) {
+        const previousState = action.previousState as {
+          isPublished: boolean;
+        };
+
+        await tx.product.update({
+          where: {
+            id: action.targetId,
+          },
+          data: {
+            isPublished: previousState.isPublished,
+          },
+        });
+      }
+
+      // -----------------------------------------------------
+      // RESTAURAR ESTADO DA PUBLICAÇÃO
+      // -----------------------------------------------------
+
+      if (
+        action.type === AdministrativeActionType.CONTENT_REMOVAL &&
+        action.targetType === ReportTargetType.POST
+      ) {
+        const previousState = action.previousState as {
+          isActive: boolean;
+        };
+
+        await tx.post.update({
+          where: {
+            id: action.targetId,
+          },
+          data: {
+            isActive: previousState.isActive,
+          },
+        });
+      }
+
+      // -----------------------------------------------------
+      // RESTAURAR ESTADO DA BANCA
+      // -----------------------------------------------------
+
+      if (
+        (
+          action.type === AdministrativeActionType.TEMPORARY_SUSPENSION ||
+          action.type === AdministrativeActionType.PERMANENT_SUSPENSION
+        ) &&
+        action.targetType === ReportTargetType.STORE
+      ) {
+        const previousState = action.previousState as {
+          isActive: boolean;
+        };
+
+        await tx.store.update({
+          where: {
+            id: action.targetId,
+          },
+          data: {
+            isActive: previousState.isActive,
+          },
+        });
+      }
+
+      // -----------------------------------------------------
+      // RESTAURAR ESTADO DO UTILIZADOR
+      // -----------------------------------------------------
+
+      if (
+        (
+          action.type === AdministrativeActionType.TEMPORARY_SUSPENSION ||
+          action.type === AdministrativeActionType.PERMANENT_SUSPENSION
+        ) &&
+        action.targetType === ReportTargetType.USER
+      ) {
+        const previousState = action.previousState as {
+          isSuspended: boolean;
+        };
+
+        await tx.user.update({
+          where: {
+            id: action.targetId,
+          },
+          data: {
+            isSuspended: previousState.isSuspended,
+          },
+        });
+      }
+
+      // -----------------------------------------------------
+      // ACTUALIZAR HISTÓRICO DA MEDIDA
+      // -----------------------------------------------------
+
+      const updated = await tx.administrativeAction.updateMany({
+        where: {
+          id: action.id,
+          status: AdministrativeActionStatus.ACTIVE,
+        },
+        data: {
+          status: AdministrativeActionStatus.REVERSED,
+          reversedAt: new Date(),
+          reversedById: requesterId,
+          reversalReason: reason,
+        },
+      });
+
+      if (updated.count !== 1) {
+        throw new BadRequestException(
+          'Esta medida foi alterada por outra operação. Actualiza os dados.',
+        );
+      }
+
+ const reversedAction = await tx.administrativeAction.findUnique({
+  where: {
+    id: action.id,
+  },
+  include: {
+    createdBy: {
+      select: {
+        id: true,
+        name: true,
+        username: true,
+        email: true,
+      },
+    },
+    reversedBy: {
+      select: {
+        id: true,
+        name: true,
+        username: true,
+        email: true,
+      },
+    },
+    report: {
+      select: {
+        id: true,
+        status: true,
+        targetType: true,
+        targetId: true,
+      },
+    },
+  },
+});
+
+const recipient =
+  await this.getAdministrativeNotificationRecipient(
+    tx,
+    action.targetType,
+    action.targetId,
+  );
+
+const notification = recipient
+  ? await this.notificationsService.createInTransaction(
+      tx,
+      recipient.userId,
+      'ADMIN_ACTION_REVERSED',
+      'Uma medida administrativa aplicada à tua conta ou banca foi revertida.',
+      {
+        reportId: action.reportId,
+        administrativeActionId: action.id,
+        targetType: action.targetType,
+        targetId: action.targetId,
+      },
+    )
+  : null;
+
+return {
+  action: reversedAction,
+  notificationUserId: recipient?.userId ?? null,
+  notification,
+};
+    });
+
+    if (result.notificationUserId) {
+  await this.notificationsService.emitCreated(
+    result.notificationUserId,
+    result.notification,
+  );
+}
+
+return result.action;
+  }
+
+    // =========================================================
+  // CONSULTAR HISTÓRICO DE MEDIDAS ADMINISTRATIVAS
+  // =========================================================
+
+  async listAdministrativeActions(
+    requesterId: string,
+    reportId: string,
+  ) {
+    const requester = await this.requireReportManager(requesterId);
+
+    const report = await this.prisma.report.findUnique({
+      where: {
+        id: reportId,
+      },
+    });
+
+    if (!report) {
+      throw new NotFoundException(
+        'Denúncia não encontrada.',
+      );
+    }
+
+    await this.assertReportAccess(
+      requester,
+      report.targetType,
+      report.targetId,
+    );
+
+    return this.prisma.administrativeAction.findMany({
+      where: {
+        reportId,
+      },
+      include: {
+        createdBy: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            email: true,
+          },
+        },
+        reversedBy: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
+
+    // =========================================================
+  // REACTIVAR AUTOMATICAMENTE SUSPENSÕES TEMPORÁRIAS
+  // =========================================================
+
+  @Cron('*/1 * * * *')
+  async processExpiredTemporarySuspensions() {
+    const now = new Date();
+
+    // =======================================================
+    // 1. PROCURAR SUSPENSÕES TEMPORÁRIAS VENCIDAS
+    // =======================================================
+
+    const expiredActions =
+      await this.prisma.administrativeAction.findMany({
+        where: {
+          type: AdministrativeActionType.TEMPORARY_SUSPENSION,
+          status: AdministrativeActionStatus.ACTIVE,
+          endsAt: {
+            lte: now,
+          },
+        },
+        orderBy: {
+          endsAt: 'asc',
+        },
+      });
+
+    if (expiredActions.length === 0) {
+      return;
+    }
+
+    // =======================================================
+    // 2. PROCESSAR CADA SUSPENSÃO
+    // =======================================================
+
+    for (const action of expiredActions) {
+      try {
+        const result = await this.prisma.$transaction(async (tx) => {
+          // -------------------------------------------------
+          // RECLAMAR A MEDIDA PARA EVITAR DUPLA EXECUÇÃO
+          // -------------------------------------------------
+
+          const claimed = await tx.administrativeAction.updateMany({
+            where: {
+              id: action.id,
+              type: AdministrativeActionType.TEMPORARY_SUSPENSION,
+              status: AdministrativeActionStatus.ACTIVE,
+              endsAt: {
+                lte: now,
+              },
+            },
+            data: {
+              status: AdministrativeActionStatus.EXPIRED,
+            },
+          });
+
+          // Outra execução já processou esta medida.
+          if (claimed.count !== 1) {
+  return null;
+}
+
+          // -------------------------------------------------
+          // RECUPERAR O ESTADO ANTERIOR
+          // -------------------------------------------------
+
+          if (!action.previousState) {
+            throw new Error(
+              `A medida ${action.id} não possui previousState.`,
+            );
+          }
+
+          // -------------------------------------------------
+          // REACTIVAR BANCA
+          // -------------------------------------------------
+
+          if (action.targetType === ReportTargetType.STORE) {
+            const previousState = action.previousState as {
+              isActive: boolean;
+            };
+
+            await tx.store.update({
+              where: {
+                id: action.targetId,
+              },
+              data: {
+                isActive: previousState.isActive,
+              },
+            });
+          }
+
+          // -------------------------------------------------
+          // REACTIVAR UTILIZADOR
+          // -------------------------------------------------
+
+          else if (action.targetType === ReportTargetType.USER) {
+            const previousState = action.previousState as {
+              isSuspended: boolean;
+            };
+
+            await tx.user.update({
+              where: {
+                id: action.targetId,
+              },
+              data: {
+                isSuspended: previousState.isSuspended,
+              },
+            });
+          }
+
+          // -------------------------------------------------
+          // TIPO DE ENTIDADE NÃO SUPORTADO
+          // -------------------------------------------------
+
+          else {
+            throw new Error(
+              `A suspensão ${action.id} possui um tipo de entidade inválido.`,
+            );
+          }
+
+          const recipient =
+  await this.getAdministrativeNotificationRecipient(
+    tx,
+    action.targetType,
+    action.targetId,
+  );
+
+const notification = recipient
+  ? await this.notificationsService.createInTransaction(
+      tx,
+      recipient.userId,
+      'ADMIN_SUSPENSION_EXPIRED',
+      'A tua suspensão temporária terminou.',
+      {
+        reportId: action.reportId,
+        administrativeActionId: action.id,
+        targetType: action.targetType as 'STORE' | 'USER',
+        targetId: action.targetId,
+      },
+    )
+  : null;
+
+return {
+  notificationUserId: recipient?.userId ?? null,
+  notification,
+};
+        });
+
+        if (result?.notificationUserId) {
+  await this.notificationsService.emitCreated(
+    result.notificationUserId,
+    result.notification,
+  );
+}
+
+        this.logger.log(
+          `Suspensão temporária ${action.id} processada automaticamente.`,
+        );
+      } catch (error) {
+        this.logger.error(
+          `Erro ao processar a suspensão ${action.id}: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        );
+      }
+    }
+  }
+private async getAdministrativeNotificationRecipient(
+  tx: Prisma.TransactionClient,
+  targetType: ReportTargetType,
+  targetId: string,
+): Promise<{ userId: string; storeId?: string } | null> {
+  switch (targetType) {
+    case ReportTargetType.USER: {
+      const user = await tx.user.findUnique({
+        where: { id: targetId },
+        select: { id: true },
+      });
+
+      return user ? { userId: user.id } : null;
+    }
+
+    case ReportTargetType.STORE: {
+      const store = await tx.store.findUnique({
+        where: { id: targetId },
+        select: {
+          id: true,
+          ownerId: true,
+        },
+      });
+
+      return store
+        ? { userId: store.ownerId, storeId: store.id }
+        : null;
+    }
+
+    case ReportTargetType.PRODUCT: {
+      const product = await tx.product.findUnique({
+        where: { id: targetId },
+        select: {
+          store: {
+            select: {
+              id: true,
+              ownerId: true,
+            },
+          },
+        },
+      });
+
+      return product
+        ? {
+            userId: product.store.ownerId,
+            storeId: product.store.id,
+          }
+        : null;
+    }
+
+    case ReportTargetType.POST: {
+      const post = await tx.post.findUnique({
+        where: { id: targetId },
+        select: {
+          store: {
+            select: {
+              id: true,
+              ownerId: true,
+            },
+          },
+        },
+      });
+
+      return post
+        ? {
+            userId: post.store.ownerId,
+            storeId: post.store.id,
+          }
+        : null;
+    }
+
+    default:
+      return null;
+  }
+}
+} 

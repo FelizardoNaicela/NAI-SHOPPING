@@ -86,17 +86,45 @@ export function NotificationList() {
     );
   }
 
-  async function handleSingleNotificationClick(
-    notification: Notification,
-  ) {
-    if (!notification.read) {
-      await markAsRead(notification.id);
-    }
+  function getNotificationDetailsLink(
+  notification: Notification,
+): string | null {
+  const detailTypes = [
+    'ADMIN_WARNING',
+    'CONTENT_REMOVED',
+    'ADMIN_SUSPENSION',
+    'ADMIN_ACTION_REVERSED',
+    'ADMIN_SUSPENSION_EXPIRED',
+    'REPORT_RESOLVED',
+    'REPORT_REJECTED',
+    'NEW_REPORT',
+  ];
 
-    const link = getNotificationLink(notification);
-if (link) navigate(link);
-
+  if (detailTypes.includes(notification.type)) {
+    return `/notifications/${notification.id}`;
   }
+
+  return null;
+}
+
+ async function handleSingleNotificationClick(
+  notification: Notification,
+) {
+  if (!notification.read) {
+    await markAsRead(notification.id);
+  }
+
+  const detailsLink = getNotificationDetailsLink(notification);
+
+  if (detailsLink) {
+    navigate(detailsLink);
+    return;
+  }
+
+  const link = getNotificationLink(notification);
+
+  if (link) navigate(link);
+}
 
   async function handleDeleteAllRead() {
     if (busy || !readNotifications.length) return;

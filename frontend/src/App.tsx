@@ -1,4 +1,4 @@
-
+import NotificationDetailsPage from "./pages/NotificationDetailsPage";
 import { Routes, Route } from "react-router-dom";
 
 import StorePage from "./pages/StorePage";
@@ -49,7 +49,14 @@ function App() {
         <Route path="/category/:id" element={<CategoryPage />} />
         <Route path="/product/:id" element={<ProductPage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
-
+<Route
+  path="/notifications/:notificationId"
+  element={
+    <ProtectedRoute>
+      <NotificationDetailsPage />
+    </ProtectedRoute>
+  }
+/>
       </Route>
 
       {/* ROTAS FORA DO LAYOUT */}

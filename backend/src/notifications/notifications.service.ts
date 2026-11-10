@@ -1,7 +1,18 @@
 import { PrismaService } from '../prisma/prisma.service';
-import { NotificationsGateway } from './notifications.gateway';
-import { Injectable, Inject, forwardRef } from '@nestjs/common';
+ import { NotificationsGateway } from './notifications.gateway';
 import { NotificationMetaMap } from './notification-meta.types';
+import {
+  Prisma,
+  Notification,
+  ReportStatus,
+  ReportTargetType,
+} from '@prisma/client';
+import {
+  Injectable,
+  Inject,
+  forwardRef,
+  NotFoundException,
+} from '@nestjs/common';
 
 @Injectable()
 export class NotificationsService {
@@ -297,5 +308,360 @@ async notifyNewReview(
       rating,
     },
   );
+}
+
+async getNotificationDetails(
+  notificationId: string,
+  userId: string,
+) {
+  // 1. Confirmar que a notificação pertence ao utilizador.
+  const notification = await this.prisma.notification.findFirst({
+    where: {
+      id: notificationId,
+      userId,
+    },
+  });
+
+  if (!notification) {
+    throw new NotFoundException('Notificação não encontrada.');
+  }
+
+  // A meta é apenas uma referência para localizar os registos.
+  // Nunca será utilizada como prova de autorização.
+  const meta =
+    notification.meta &&
+    typeof notification.meta === 'object' &&
+    !Array.isArray(notification.meta)
+      ? (notification.meta as Record<string, unknown>)
+      : {};
+
+  // 2. Notificações de resolução ou rejeição da denúncia.
+  if (
+    notification.type === 'REPORT_RESOLVED' ||
+    notification.type === 'REPORT_REJECTED'
+  ) {
+    const reportId = meta.reportId;
+
+    if (typeof reportId !== 'string') {
+      throw new NotFoundException('Detalhes não encontrados.');
+    }
+
+    const report = await this.prisma.report.findFirst({
+      where: {
+        id: reportId,
+        reporterId: userId,
+        status: {
+          in: [ReportStatus.RESOLVED, ReportStatus.REJECTED],
+        },
+      },
+      select: {
+        id: true,
+        targetType: true,
+        status: true,
+        createdAt: true,
+        reviewedAt: true,
+      },
+    });
+
+    if (!report) {
+      throw new NotFoundException('Detalhes não encontrados.');
+    }
+
+    return {
+      notificationId: notification.id,
+      type: notification.type,
+      message: notification.message,
+      createdAt: notification.createdAt,
+
+      report: {
+        id: report.id,
+        targetType: report.targetType,
+        status: report.status,
+        createdAt: report.createdAt,
+        reviewedAt: report.reviewedAt,
+      },
+    };
+  }
+
+  // 3. Notificações de medidas administrativas.
+  const administrativeTypes = [
+    'ADMIN_WARNING',
+    'CONTENT_REMOVED',
+    'ADMIN_SUSPENSION',
+    'ADMIN_ACTION_REVERSED',
+    'ADMIN_SUSPENSION_EXPIRED',
+  ];
+
+  if (administrativeTypes.includes(notification.type)) {
+    const actionId = meta.administrativeActionId;
+
+    if (typeof actionId !== 'string') {
+      throw new NotFoundException('Detalhes não encontrados.');
+    }
+
+    const action =
+      await this.prisma.administrativeAction.findUnique({
+        where: {
+          id: actionId,
+        },
+        select: {
+          id: true,
+          reportId: true,
+          targetType: true,
+          targetId: true,
+          type: true,
+          status: true,
+          startsAt: true,
+          endsAt: true,
+          reversedAt: true,
+          createdAt: true,
+          report: {
+            select: {
+              id: true,
+              targetType: true,
+              targetId: true,
+            },
+          },
+        },
+      });
+
+    if (
+      !action ||
+      action.reportId !== meta.reportId ||
+      action.report.id !== action.reportId ||
+      action.targetType !== action.report.targetType ||
+      action.targetId !== action.report.targetId ||
+      action.targetType !== meta.targetType ||
+      action.targetId !== meta.targetId
+    ) {
+      throw new NotFoundException('Detalhes não encontrados.');
+    }
+
+    // 4. Confirmar quem é o destinatário legítimo da medida.
+    let authorized = false;
+    let storeName: string | null = null;
+    let removedContent: any = null;
+let contentLink: string | null = null;
+
+    if (action.targetType === ReportTargetType.USER) {
+      authorized = action.targetId === userId;
+    }
+
+    if (action.targetType === ReportTargetType.STORE) {
+      const store = await this.prisma.store.findUnique({
+        where: {
+          id: action.targetId,
+        },
+        select: {
+          ownerId: true,
+          name: true,
+        },
+      });
+
+      if (store) {
+        authorized = store.ownerId === userId;
+        storeName = store.name;
+      }
+    }
+
+    if (
+      action.targetType === ReportTargetType.PRODUCT ||
+      action.targetType === ReportTargetType.POST
+    ) {
+      const store = await this.prisma.store.findFirst({
+        where:
+          action.targetType === ReportTargetType.PRODUCT
+            ? {
+                products: {
+                  some: {
+                    id: action.targetId,
+                  },
+                },
+              }
+            : {
+                posts: {
+                  some: {
+                    id: action.targetId,
+                  },
+                },
+              },
+        select: {
+          ownerId: true,
+          name: true,
+        },
+      });
+
+      if (store) {
+        authorized = store.ownerId === userId;
+        storeName = store.name;
+      }
+    }
+
+    if (!authorized) {
+      throw new NotFoundException('Detalhes não encontrados.');
+    }
+
+   if (
+  action.type === 'CONTENT_REMOVAL' &&
+  action.targetType === ReportTargetType.POST
+) {
+  const post = await this.prisma.post.findUnique({
+    where: { id: action.targetId },
+    select: {
+      id: true,
+      content: true,
+      type: true,
+      createdAt: true,
+      isActive: true,
+      images: {
+        orderBy: { order: 'asc' },
+        select: {
+          url: true,
+          order: true,
+        },
+      },
+      product: {
+        select: {
+          id: true,
+          name: true,
+          imageUrl: true,
+        },
+      },
+    },
+  });
+
+  if (post) {
+    removedContent = {
+      kind: 'POST',
+      id: post.id,
+      text: post.content,
+      type: post.type,
+      createdAt: post.createdAt,
+      images: post.images.map(image => image.url),
+      product: post.product,
+    };
+
+    if (post.isActive) {
+      contentLink = `/post/${post.id}`;
+    }
+  }
+}
+
+if (
+  action.type === 'CONTENT_REMOVAL' &&
+  action.targetType === ReportTargetType.PRODUCT
+) {
+  const product = await this.prisma.product.findUnique({
+    where: { id: action.targetId },
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      price: true,
+      imageUrl: true,
+      createdAt: true,
+      isPublished: true,
+      images: {
+        where: { isDeleted: false },
+        orderBy: { order: 'asc' },
+        select: {
+          originalUrl: true,
+          largeUrl: true,
+          mediumUrl: true,
+          thumbUrl: true,
+          webpUrl: true,
+          isCover: true,
+          order: true,
+        },
+      },
+    },
+  });
+
+  if (product) {
+    removedContent = {
+      kind: 'PRODUCT',
+      id: product.id,
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      imageUrl: product.imageUrl,
+      createdAt: product.createdAt,
+      images: product.images,
+    };
+
+    if (product.isPublished) {
+      contentLink = `/product/${product.id}`;
+    }
+  }
+}
+
+    // 5. Devolver apenas informação pública da medida.
+    return {
+  notificationId: notification.id,
+  type: notification.type,
+  message: notification.message,
+  createdAt: notification.createdAt,
+
+  administrativeAction: {
+    id: action.id,
+    type: action.type,
+    status: action.status,
+    targetType: action.targetType,
+    targetId: action.targetId,
+    startsAt: action.startsAt,
+    endsAt: action.endsAt,
+    reversedAt: action.reversedAt,
+    createdAt: action.createdAt,
+    storeName,
+  },
+
+  content: removedContent,
+  contentLink,
+};
+  }
+
+  throw new NotFoundException(
+    'Esta notificação não possui uma página de detalhes disponível.',
+  );
+}
+
+async createInTransaction<T extends keyof NotificationMetaMap>(
+  tx: Prisma.TransactionClient,
+  userId: string,
+  type: T,
+  message: string,
+  meta: NotificationMetaMap[T],
+): Promise<Notification | null> {
+  const prefs = await tx.notificationPreference.findUnique({
+    where: { userId },
+  });
+
+  // Respeita as preferências de notificações do utilizador.
+  if (prefs && (!prefs.system || !prefs.inApp)) {
+    return null;
+  }
+
+  // Sem preferência configurada, mantém o comportamento padrão:
+  // permitir notificações dentro da aplicação.
+  return tx.notification.create({
+    data: {
+      userId,
+      type,
+      message,
+      meta: meta as Prisma.InputJsonValue,
+    },
+  });
+}
+
+async emitCreated(
+  userId: string,
+  notification: Notification | null,
+): Promise<void> {
+  if (!notification) return;
+
+  // Só emitir depois de a transação que criou a notificação terminar.
+  this.gateway.notifyUser(userId, notification);
+
+  await this.emitUnreadCount(userId);
 }
 }
