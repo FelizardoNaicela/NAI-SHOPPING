@@ -30,6 +30,14 @@ export default function GlobalFeed() {
   const [hasMore, setHasMore] =
     useState(true);
 
+    const [feedCountry, setFeedCountry] = useState(
+  () => localStorage.getItem("feed_country") || "MZ"
+);
+
+const [feedRegion, setFeedRegion] = useState(
+  () => localStorage.getItem("feed_region") || ""
+);
+
   /**
    * Seed das promoções deste feed.
    *
@@ -198,18 +206,26 @@ export default function GlobalFeed() {
       }}
     >
       <RegionSelector
-        onChange={reloadFeed}
-      />
+  onChange={() => {
+    setFeedCountry(
+      localStorage.getItem("feed_country") || "MZ"
+    );
+
+    setFeedRegion(
+      localStorage.getItem("feed_region") || ""
+    );
+
+    reloadFeed();
+  }}
+/>
 
       <PromotionFeedSlots
-        items={posts}
-        seed={feedSeed}
-        renderItem={post => (
-          <FeedPost
-            post={post}
-          />
-        )}
-      />
+  items={posts}
+  seed={feedSeed}
+  country={feedCountry}
+  region={feedRegion}
+  renderItem={post => <FeedPost post={post} />}
+/>
 
       {loading && (
         <p>

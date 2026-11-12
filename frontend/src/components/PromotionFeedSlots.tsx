@@ -64,6 +64,9 @@ type PromotionFeedSlotsProps<T> = {
     index: number,
   ) => ReactNode;
 
+    country?: string;
+  region?: string;
+
   /**
    * Seed do feed.
    *
@@ -86,6 +89,8 @@ export default function PromotionFeedSlots<T>({
   renderItem,
   seed = "default",
   gap = 24,
+  country,
+  region,
 }: PromotionFeedSlotsProps<T>) {
   const [promotionSlots, setPromotionSlots] =
     useState<
@@ -102,8 +107,9 @@ export default function PromotionFeedSlots<T>({
    * Evita fazer várias requisições
    * simultaneamente.
    */
-  const loadingRef =
-    useRef(false);
+    const requestVersionRef = useRef(0);
+
+  const loadingVersionRef = useRef<number | null>(null);
 
   /**
    * Quantidade aproximada de posições
@@ -124,29 +130,32 @@ export default function PromotionFeedSlots<T>({
    * CARREGAR PROMOÇÕES
    * ---------------------------------------------------------
    */
-  async function loadPromotions() {
-    if (loadingRef.current) {
+   async function loadPromotions(
+    version = requestVersionRef.current,
+  ) {
+    if (version !== requestVersionRef.current) {
+      return;
+    }
+
+    if (loadingVersionRef.current === version) {
       return;
     }
 
     if (
-      loadedUntilRef.current >=
-      requiredFeedPositions
+      loadedUntilRef.current >= requiredFeedPositions
     ) {
       return;
     }
 
-    loadingRef.current = true;
+    loadingVersionRef.current = version;
     setLoadingPromotions(true);
 
     try {
-      const start =
-        loadedUntilRef.current;
+      const start = loadedUntilRef.current;
 
       const limit = Math.max(
         20,
-        requiredFeedPositions -
-          start,
+        requiredFeedPositions - start,
       );
 
       const response =
@@ -154,64 +163,51 @@ export default function PromotionFeedSlots<T>({
           start,
           limit,
           seed,
+          country,
+          region,
         })) as BackendFeedPromotionsResponse;
 
-      /**
-       * O backend devolve:
-       *
-       * {
-       *   position: 1,
-       *   promotion: {...}
-       * }
-       *
-       * Guardamos cada promoção
-       * diretamente na sua posição.
-       */
-      if (
-        response &&
-        Array.isArray(
-          response.promotions,
-        )
-      ) {
-        setPromotionSlots(
-          previous => {
-            const next =
-              new Map(previous);
-
-            for (
-              const slot of response.promotions
-            ) {
-              if (
-                !slot ||
-                !slot.promotion
-              ) {
-                continue;
-              }
-
-              next.set(
-                slot.position,
-                slot.promotion,
-              );
-            }
-
-            return next;
-          },
-        );
+      // Ignorar respostas de pedidos antigos.
+      if (version !== requestVersionRef.current) {
+        return;
       }
 
-      /**
-       * Avança a área já consultada.
-       */
-      loadedUntilRef.current =
-        Math.max(
-          loadedUntilRef.current,
-          start + limit,
-        );
+      if (
+        response &&
+        Array.isArray(response.promotions)
+      ) {
+        setPromotionSlots(previous => {
+          const next = new Map(previous);
+
+          for (const slot of response.promotions) {
+            if (!slot || !slot.promotion) {
+              continue;
+            }
+
+            next.set(
+              slot.position,
+              slot.promotion,
+            );
+          }
+
+          return next;
+        });
+      }
+
+      loadedUntilRef.current = Math.max(
+        loadedUntilRef.current,
+        start + limit,
+      );
+
     } catch (error) {
 
     } finally {
-      loadingRef.current = false;
-      setLoadingPromotions(false);
+      // Só o pedido mais recente pode alterar
+      // o estado de carregamento.
+      if (loadingVersionRef.current === version) {
+        loadingVersionRef.current = null;
+        setLoadingPromotions(false);
+      }
     }
   }
 
@@ -220,15 +216,17 @@ export default function PromotionFeedSlots<T>({
    * PRIMEIRO CARREGAMENTO
    * ---------------------------------------------------------
    */
-  useEffect(() => {
+   useEffect(() => {
+    const version = ++requestVersionRef.current;
+
     loadedUntilRef.current = 0;
+    loadingVersionRef.current = null;
 
-    setPromotionSlots(
-      new Map(),
-    );
+    setPromotionSlots(new Map());
 
-    loadPromotions();
-  }, [seed]);
+    loadPromotions(version);
+
+  }, [seed, country, region]);
 
   /**
    * ---------------------------------------------------------

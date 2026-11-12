@@ -89,6 +89,9 @@ type Promotion = {
 type PromotedMarketplaceSlotsProps = {
   items: MarketplaceProduct[];
 
+  country?: string;
+region?: string;
+
   /*
    * Produto PREMIUM reservado para o
    * primeiro card da pesquisa.
@@ -179,6 +182,8 @@ export default function PromotedMarketplaceSlots({
   placement,
   renderItem,
   loading = false,
+  country,
+  region,
 }: PromotedMarketplaceSlotsProps) {
   const [
     promotions,
@@ -205,55 +210,53 @@ export default function PromotedMarketplaceSlots({
    * A campanha continua completamente
    * independente da pesquisa/categoria.
    */
-  useEffect(() => {
-    let cancelled = false;
+ useEffect(() => {
+  let cancelled = false;
 
-    async function loadPromotions() {
-      try {
-        const result =
-          await getPromotionsByPlacement(
-            placement,
-            {
-              seed: promotionSeed.current,
-            },
-          );
+  async function loadPromotions() {
+    setPromotions([]);
 
-        if (cancelled) {
-          return;
-        }
-
-        setPromotions(
-          Array.isArray(result)
-            ? result
-            : [],
+    try {
+      const result =
+        await getPromotionsByPlacement(
+          placement,
+          {
+            seed: promotionSeed.current,
+            country,
+            region,
+          },
         );
 
-        loadedPlacement.current =
-          placement;
-      } catch {
-        if (cancelled) {
-          return;
-        }
+      if (cancelled) {
+        return;
+      }
 
+      setPromotions(
+        Array.isArray(result)
+          ? result
+          : [],
+      );
+
+      loadedPlacement.current =
+        `${placement}-${country ?? ""}-${region ?? ""}`;
+    } catch {
+      if (!cancelled) {
         setPromotions([]);
       }
     }
+  }
 
-    /*
-     * Só recarrega quando muda
-     * o tipo de espaço publicitário.
-     */
-    if (
-      loadedPlacement.current !==
-      placement
-    ) {
-      loadPromotions();
-    }
+  const currentKey =
+    `${placement}-${country ?? ""}-${region ?? ""}`;
 
-    return () => {
-      cancelled = true;
-    };
-  }, [placement]);
+  if (loadedPlacement.current !== currentKey) {
+    loadPromotions();
+  }
+
+  return () => {
+    cancelled = true;
+  };
+}, [placement, country, region]);
 
   /*
    * ---------------------------------------------------------

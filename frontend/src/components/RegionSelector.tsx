@@ -1,11 +1,14 @@
+
 import { useState, useEffect } from "react";
 import { REGIONS } from "../shared/regions";
+import { useAuth } from "../auth/AuthProvider";
 
 type Props = {
   onChange: () => void;
 };
 
  export default function RegionSelector({ onChange }: Props) {
+  const { user, isAuthenticated } = useAuth();
   const [country, setCountry] = useState(
     () => localStorage.getItem("feed_country") || "MZ"
   );
@@ -18,6 +21,17 @@ type Props = {
 
   const availableRegions =
     REGIONS[country as keyof typeof REGIONS] || [];
+
+    useEffect(() => {
+  if (!isAuthenticated || !user?.countryCode) return;
+
+  setCountry(user.countryCode.trim().toUpperCase());
+  setRegion(user.region?.trim() || "");
+}, [
+  isAuthenticated,
+  user?.countryCode,
+  user?.region,
+]);
 
 useEffect(() => {
     localStorage.setItem("feed_country", country);

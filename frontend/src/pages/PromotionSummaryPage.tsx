@@ -14,9 +14,24 @@ import FloatingDrawers from "../components/drawer/FloatingDrawers";
 import {
   createPromotion,
   type PromotionPlacement,
+  type PromotionLocationMode,
 } from "../services/promotions";
 import SmartImage from "../components/SmartImage";
 import { api } from "../services/api";
+import { getStorePage } from "../services/stores";
+import { REGIONS, COUNTRIES } from "../shared/regions";
+import {
+  Flame,
+  Search,
+  Tag,
+  Package,
+  Eye,
+  Globe2,
+  MapPin,
+  AlertTriangle,
+  ArrowLeft,
+  type LucideIcon,
+} from "lucide-react";
 
 type PromotionType =
   | "feed"
@@ -38,7 +53,7 @@ type ProductSummary = {
 
 type PromotionLabel = {
   title: string;
-  icon: string;
+  icon: LucideIcon;
   description: string;
 };
 
@@ -82,21 +97,21 @@ const promotionLabels: Record<
   PromotionLabel
 > = {
   feed: {
-    icon: "🔥",
+    icon: Flame,
     title: "Promoção no Feed",
     description:
       "Seus produtos serão exibidos em áreas patrocinadas do feed.",
   },
 
   search: {
-    icon: "🔎",
+    icon: Search,
     title: "Promoção na Pesquisa",
     description:
       "Seus produtos terão maior visibilidade nos resultados de pesquisa.",
   },
 
   category: {
-    icon: "🏷️",
+    icon: Tag,
     title: "Promoção nas Categorias",
     description:
       "Seus produtos serão exibidos como produtos promovidos dentro das categorias.",
@@ -163,6 +178,8 @@ export default function PromotionSummaryPage() {
   const promotion =
     promotionLabels[type];
 
+    const PromotionIcon = promotion.icon;
+
   const productIds = useMemo(
     () =>
       productsParam
@@ -179,6 +196,81 @@ export default function PromotionSummaryPage() {
 
 const [productsLoading, setProductsLoading] =
   useState(true);
+
+  // =========================================================
+// LOCALIZAÇÃO DA BANCA
+// =========================================================
+
+const [storeLocation, setStoreLocation] = useState<{
+  countryCode: string;
+  region?: string;
+} | null>(null);
+
+const [storeLocationLoading, setStoreLocationLoading] =
+  useState(true);
+
+// =========================================================
+// LOCALIZAÇÃO DA CAMPANHA
+// =========================================================
+
+const [locationMode, setLocationMode] =
+  useState<PromotionLocationMode>("INHERITED");
+
+const [targetCountryCode, setTargetCountryCode] =
+  useState("");
+
+const [targetRegions, setTargetRegions] =
+  useState<string[]>([]);
+
+  useEffect(() => {
+  async function loadStoreLocation() {
+    if (!storeId) {
+      setStoreLocationLoading(false);
+      return;
+    }
+
+    try {
+      setStoreLocationLoading(true);
+
+      const data = await getStorePage(storeId);
+
+      const location = {
+        countryCode: data.store.countryCode,
+        region: data.store.region,
+      };
+
+      setStoreLocation(location);
+
+      // Usamos o país da banca como país inicial
+      // caso o proprietário escolha localização personalizada.
+      setTargetCountryCode(location.countryCode);
+    } catch (err) {
+      console.error(
+        "Erro ao carregar localização da banca:",
+        err,
+      );
+
+      setStoreLocation(null);
+    } finally {
+      setStoreLocationLoading(false);
+    }
+  }
+
+  loadStoreLocation();
+}, [storeId]);
+
+const availableRegions =
+  REGIONS[
+    targetCountryCode as keyof typeof REGIONS
+  ] || [];
+
+function toggleTargetRegion(region: string) {
+  setTargetRegions(current =>
+    current.includes(region)
+      ? current.filter(item => item !== region)
+      : [...current, region],
+  );
+}
 
 useEffect(() => {
   async function loadProducts() {
@@ -279,6 +371,23 @@ useEffect(() => {
       return;
     }
 
+    if (storeLocationLoading || !storeLocation) {
+  setError(
+    "Não foi possível carregar a localização da banca. Tente novamente.",
+  );
+  return;
+}
+
+if (
+  locationMode === "CUSTOM" &&
+  !targetCountryCode
+) {
+  setError(
+    "Selecione o país de destino da campanha.",
+  );
+  return;
+}
+
     if (!accepted) {
       return;
     }
@@ -366,6 +475,20 @@ useEffect(() => {
   placements,
 
   productIds,
+
+  locationMode,
+
+  targetCountryCode:
+    locationMode === "INHERITED"
+      ? storeLocation.countryCode
+      : targetCountryCode,
+
+  targetRegions:
+    locationMode === "INHERITED"
+      ? storeLocation.region
+        ? [storeLocation.region]
+        : []
+      : targetRegions,
 });
 
       /*
@@ -461,7 +584,16 @@ useEffect(() => {
               "pointer",
           }}
         >
-          ← Voltar
+          <span
+  style={{
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 7,
+  }}
+>
+  <ArrowLeft size={16} />
+  Voltar
+</span>
         </button>
       </div>
     );
@@ -507,7 +639,16 @@ useEffect(() => {
             creating ? 0.6 : 1,
         }}
       >
-        ← Voltar
+       <span
+  style={{
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 7,
+  }}
+>
+  <ArrowLeft size={16} />
+  Voltar
+</span>
       </button>
 
       {/* ===================================================== */}
@@ -520,13 +661,13 @@ useEffect(() => {
         }}
       >
         <div
-          style={{
-            fontSize: 38,
-            marginBottom: 8,
-          }}
-        >
-          {promotion.icon}
-        </div>
+  style={{
+    marginBottom: 8,
+    color: "var(--primary)",
+  }}
+>
+  <PromotionIcon size={36} strokeWidth={1.8} />
+</div>
 
         <h1
           style={{
@@ -592,7 +733,7 @@ useEffect(() => {
                 "1px solid var(--border)",
             }}
           >
-            {promotion.icon}
+<PromotionIcon size={28} strokeWidth={1.8} />
           </div>
 
           <div>
@@ -835,17 +976,17 @@ useEffect(() => {
             />
           ) : (
             <div
-              style={{
-                width: "100%",
-                height: "100%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 28,
-              }}
-            >
-              📦
-            </div>
+  style={{
+    width: "100%",
+    height: "100%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: "var(--text-soft)",
+  }}
+>
+  <Package size={30} strokeWidth={1.7} />
+</div>
           )}
         </div>
 
@@ -920,12 +1061,15 @@ useEffect(() => {
           }}
         >
           <div
-            style={{
-              fontSize: 28,
-            }}
-          >
-            👁️
-          </div>
+  style={{
+    color: "var(--primary)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  }}
+>
+  <Eye size={28} strokeWidth={1.8} />
+</div>
 
           <div>
             <strong
@@ -1034,6 +1178,352 @@ useEffect(() => {
       </section>
 
       {/* ===================================================== */}
+{/* LOCALIZAÇÃO DA CAMPANHA */}
+{/* ===================================================== */}
+
+<section
+  style={{
+    padding: 24,
+    borderRadius: 18,
+    border: "1px solid var(--border)",
+    background: "var(--surface)",
+    marginBottom: 20,
+  }}
+>
+  <h2
+    style={{
+      margin: "0 0 8px",
+      fontSize: 20,
+    }}
+  >
+    <span
+  style={{
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 9,
+  }}
+>
+  <Globe2 size={21} />
+  Localização da campanha
+</span>
+  </h2>
+
+  <p
+    style={{
+      margin: "0 0 20px",
+      color: "var(--text-soft)",
+      fontSize: 14,
+      lineHeight: 1.5,
+    }}
+  >
+    Escolha em que país e províncias os produtos
+    promovidos poderão ser apresentados.
+  </p>
+
+  {storeLocationLoading ? (
+    <p style={{ color: "var(--text-soft)" }}>
+      Carregando localização da banca...
+    </p>
+  ) : (
+    <>
+      {/* LOCALIZAÇÃO HERDADA */}
+
+      <label
+        style={{
+          display: "flex",
+          alignItems: "flex-start",
+          gap: 12,
+          padding: 16,
+          borderRadius: 12,
+          border:
+            locationMode === "INHERITED"
+              ? "2px solid var(--primary)"
+              : "1px solid var(--border)",
+          background:
+            locationMode === "INHERITED"
+              ? "var(--surface-glass)"
+              : "transparent",
+          cursor: creating ? "not-allowed" : "pointer",
+          marginBottom: 12,
+        }}
+      >
+        <input
+          type="radio"
+          name="promotionLocation"
+          checked={locationMode === "INHERITED"}
+          disabled={creating}
+          onChange={() => {
+            setLocationMode("INHERITED");
+            setError(null);
+          }}
+          style={{
+            marginTop: 3,
+            accentColor: "var(--primary)",
+          }}
+        />
+
+        <div style={{ flex: 1 }}>
+          <strong>
+            Usar localização da banca
+          </strong>
+
+          <p
+            style={{
+              margin: "6px 0 0",
+              color: "var(--text-soft)",
+              fontSize: 13,
+              lineHeight: 1.5,
+            }}
+          >
+            A campanha será apresentada na localização
+            associada à tua banca.
+          </p>
+
+          {storeLocation && (
+            <div
+              style={{
+                marginTop: 10,
+                fontSize: 13,
+                fontWeight: 600,
+              }}
+            >
+              {COUNTRIES.find(
+                country =>
+                  country.code === storeLocation.countryCode,
+              )?.name || storeLocation.countryCode}
+
+              {storeLocation.region
+                ? ` • ${storeLocation.region}`
+                : " • País inteiro"}
+            </div>
+          )}
+        </div>
+      </label>
+
+      {/* LOCALIZAÇÃO PERSONALIZADA */}
+
+      <label
+        style={{
+          display: "flex",
+          alignItems: "flex-start",
+          gap: 12,
+          padding: 16,
+          borderRadius: 12,
+          border:
+            locationMode === "CUSTOM"
+              ? "2px solid var(--primary)"
+              : "1px solid var(--border)",
+          background:
+            locationMode === "CUSTOM"
+              ? "var(--surface-glass)"
+              : "transparent",
+          cursor: creating ? "not-allowed" : "pointer",
+        }}
+      >
+        <input
+          type="radio"
+          name="promotionLocation"
+          checked={locationMode === "CUSTOM"}
+          disabled={creating}
+          onChange={() => {
+            setLocationMode("CUSTOM");
+            setError(null);
+          }}
+          style={{
+            marginTop: 3,
+            accentColor: "var(--primary)",
+          }}
+        />
+
+        <div style={{ flex: 1 }}>
+          <strong>
+            Escolher localização personalizada
+          </strong>
+
+          <p
+            style={{
+              margin: "6px 0 14px",
+              color: "var(--text-soft)",
+              fontSize: 13,
+              lineHeight: 1.5,
+            }}
+          >
+            Escolhe outro país ou seleciona as províncias
+            onde pretendes divulgar os teus produtos.
+          </p>
+
+          {locationMode === "CUSTOM" && (
+            <div>
+              {/* PAÍS */}
+
+              <label
+                style={{
+                  display: "block",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  marginBottom: 8,
+                }}
+              >
+                País de destino
+              </label>
+
+              <select
+                value={targetCountryCode}
+                disabled={creating}
+                onChange={event => {
+                  setTargetCountryCode(event.target.value);
+                  setTargetRegions([]);
+                  setError(null);
+                }}
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  borderRadius: 9,
+                  border: "1px solid var(--border)",
+                  background: "var(--surface)",
+                  color: "var(--text)",
+                  fontSize: 14,
+                  marginBottom: 18,
+                }}
+              >
+                <option value="">
+                  Selecionar país
+                </option>
+
+                {COUNTRIES.map(country => (
+                  <option
+                    key={country.code}
+                    value={country.code}
+                  >
+                    {country.name}
+                  </option>
+                ))}
+              </select>
+
+              {/* PROVÍNCIAS */}
+
+              {targetCountryCode && (
+                <>
+                  <div
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 600,
+                      marginBottom: 8,
+                    }}
+                  >
+                    Províncias
+                  </div>
+
+                  <p
+                    style={{
+                      margin: "0 0 12px",
+                      color: "var(--text-soft)",
+                      fontSize: 12,
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    Seleciona as províncias pretendidas.
+                    Se não selecionares nenhuma, a campanha
+                    abrangerá todo o país.
+                  </p>
+
+                  {availableRegions.length > 0 ? (
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns:
+                          "repeat(auto-fit, minmax(180px, 1fr))",
+                        gap: 10,
+                      }}
+                    >
+                      {availableRegions.map(region => (
+                        <label
+                          key={region}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 9,
+                            padding: 11,
+                            borderRadius: 9,
+                            border: "1px solid var(--border)",
+                            background: targetRegions.includes(region)
+                              ? "var(--surface-glass)"
+                              : "transparent",
+                            cursor: creating
+                              ? "not-allowed"
+                              : "pointer",
+                            fontSize: 13,
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={targetRegions.includes(region)}
+                            disabled={creating}
+                            onChange={() =>
+                              toggleTargetRegion(region)
+                            }
+                            style={{
+                              accentColor: "var(--primary)",
+                            }}
+                          />
+
+                          {region}
+                        </label>
+                      ))}
+                    </div>
+                  ) : (
+                    <p
+                      style={{
+                        color: "var(--text-soft)",
+                        fontSize: 13,
+                      }}
+                    >
+                      Não existem províncias configuradas
+                      para este país.
+                    </p>
+                  )}
+
+                  <div
+                    style={{
+                      marginTop: 14,
+                      padding: 12,
+                      borderRadius: 9,
+                      background: "var(--surface-glass)",
+                      fontSize: 13,
+                      color: "var(--text-soft)",
+                    }}
+                  >
+                    <div
+  style={{
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+  }}
+>
+  <MapPin size={17} />
+
+  <span>
+    {targetRegions.length === 0
+      ? "A campanha abrangerá todo o país."
+      : `${targetRegions.length} ${
+          targetRegions.length === 1
+            ? "província selecionada"
+            : "províncias selecionadas"
+        }.`}
+  </span>
+</div>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      </label>
+    </>
+  )}
+</section>
+
+      {/* ===================================================== */}
       {/* ACEITAÇÃO */}
       {/* ===================================================== */}
 
@@ -1109,7 +1599,16 @@ useEffect(() => {
               fontSize: 14,
             }}
           >
-            ⚠️ {error}
+            <span
+  style={{
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+  }}
+>
+  <AlertTriangle size={18} />
+  {error}
+</span>
           </div>
         )}
       </section>
@@ -1174,10 +1673,16 @@ useEffect(() => {
 
           <button
             type="button"
-            disabled={
-              !accepted ||
-              creating
-            }
+           disabled={
+  !accepted ||
+  creating ||
+  storeLocationLoading ||
+  !storeLocation ||
+  (
+    locationMode === "CUSTOM" &&
+    !targetCountryCode
+  )
+}
             onClick={
               createCampaign
             }

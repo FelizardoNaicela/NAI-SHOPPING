@@ -13,7 +13,10 @@ import {
   PaymentType,
   PromotionPlacement,
   PromotionStatus,
+  PromotionLocationMode,
 } from "@prisma/client";
+import { REGIONS } from "../common/regions";
+
 
 type CreatePromotionDto = {
   name: string;
@@ -23,6 +26,10 @@ type CreatePromotionDto = {
   priority?: number;
   placements: PromotionPlacement[];
   productIds: string[];
+
+  locationMode?: PromotionLocationMode;
+  targetCountryCode?: string;
+  targetRegions?: string[];
 };
 
 type UpdatePromotionDto = {
@@ -32,9 +39,24 @@ type UpdatePromotionDto = {
   priority?: number;
   placements?: PromotionPlacement[];
   productIds?: string[];
+
+  locationMode?: PromotionLocationMode;
+  targetCountryCode?: string;
+  targetRegions?: string[];
 };
 
-type FeedPromotionOptions = {
+
+type PromotionLocation = {
+  country?: string;
+  region?: string;
+};
+
+type PublicPromotionOptions = {
+  userId?: string;
+  location?: PromotionLocation;
+};
+
+type FeedPromotionOptions = PublicPromotionOptions & {
   start: number;
   limit: number;
   seed: string;
@@ -131,6 +153,65 @@ export class PromotionsService {
       );
     }
 
+
+const locationMode =
+  dto.locationMode ??
+  PromotionLocationMode.INHERITED;
+
+const targetCountryCode = (
+  locationMode === PromotionLocationMode.INHERITED
+    ? store.countryCode
+    : dto.targetCountryCode
+)?.trim().toUpperCase();
+
+let targetRegions: string[] = [];
+
+if (locationMode === PromotionLocationMode.INHERITED) {
+  targetRegions = store.region?.trim()
+    ? [store.region.trim()]
+    : [];
+} else {
+  const rawRegions: unknown = dto.targetRegions;
+
+  if (
+    rawRegions !== undefined &&
+    !Array.isArray(rawRegions)
+  ) {
+    throw new BadRequestException(
+      "A lista de províncias é inválida.",
+    );
+  }
+
+  const normalizedRegions: string[] = [];
+
+  for (const region of (rawRegions ?? []) as unknown[]) {
+    if (typeof region !== "string") {
+      throw new BadRequestException(
+        "Uma das províncias selecionadas é inválida.",
+      );
+    }
+
+    const normalizedRegion = region.trim();
+
+    if (normalizedRegion) {
+      normalizedRegions.push(normalizedRegion);
+    }
+  }
+
+  targetRegions = [...new Set(normalizedRegions)];
+}
+
+if (!targetCountryCode) {
+  throw new BadRequestException(
+    "É necessário selecionar um país para a promoção.",
+  );
+}
+
+targetRegions = this.validatePromotionRegions(
+  targetCountryCode,
+  targetRegions,
+);
+
     // =========================================================
     // VALIDAR PRODUTOS
     // =========================================================
@@ -211,6 +292,10 @@ export class PromotionsService {
           startsAt,
 
           endsAt,
+
+          locationMode,
+targetCountryCode,
+targetRegions,
 
           // =====================================================
           // FONTE DE VERDADE DO LIMITE
@@ -1313,6 +1398,100 @@ private async hasPaidPromotionPayment(
     }
 
     // =========================================================
+// LOCALIZAÇÃO DA PROMOÇÃO
+// =========================================================
+
+
+const locationMode =
+  dto.locationMode ?? promotion.locationMode;
+
+let targetCountryCode =
+  promotion.targetCountryCode;
+
+let targetRegions =
+  [...promotion.targetRegions];
+
+// ---------------------------------------------------------
+// LOCALIZAÇÃO HERDADA DA BANCA
+// ---------------------------------------------------------
+
+if (
+  locationMode === PromotionLocationMode.INHERITED
+) {
+  targetCountryCode =
+    promotion.store.countryCode.trim().toUpperCase();
+
+  targetRegions = promotion.store.region?.trim()
+    ? [promotion.store.region.trim()]
+    : [];
+}
+
+// ---------------------------------------------------------
+// LOCALIZAÇÃO PERSONALIZADA
+// ---------------------------------------------------------
+
+else {
+  const changingToCustom =
+    dto.locationMode === PromotionLocationMode.CUSTOM &&
+    promotion.locationMode !== PromotionLocationMode.CUSTOM;
+
+  if (
+    changingToCustom &&
+    dto.targetCountryCode === undefined
+  ) {
+    throw new BadRequestException(
+      "É necessário selecionar um país para a localização personalizada.",
+    );
+  }
+
+  if (dto.targetCountryCode !== undefined) {
+    targetCountryCode =
+      dto.targetCountryCode.trim().toUpperCase();
+  }
+
+  if (!targetCountryCode) {
+    throw new BadRequestException(
+      "É necessário selecionar um país para a promoção.",
+    );
+  }
+
+  const countryChanged =
+    targetCountryCode !== promotion.targetCountryCode;
+
+  if (dto.targetRegions !== undefined) {
+    if (!Array.isArray(dto.targetRegions)) {
+      throw new BadRequestException(
+        "A lista de províncias é inválida.",
+      );
+    }
+
+    targetRegions = [
+      ...new Set(
+        dto.targetRegions
+          .map((region) => {
+            if (typeof region !== "string") {
+              throw new BadRequestException(
+                "Uma das províncias selecionadas é inválida.",
+              );
+            }
+
+            return region.trim();
+          })
+          .filter(Boolean),
+      ),
+    ];
+  } else if (changingToCustom || countryChanged) {
+    // Não conservar províncias do país/localização anterior.
+    targetRegions = [];
+  }
+}
+
+targetRegions = this.validatePromotionRegions(
+  targetCountryCode,
+  targetRegions,
+);
+
+    // =========================================================
     // VALIDAR PRODUTOS
     // =========================================================
 
@@ -1413,6 +1592,12 @@ private async hasPaidPromotionPayment(
             },
 
             data: {
+
+              // LOCALIZAÇÃO DA PROMOÇÃO
+locationMode,
+targetCountryCode,
+targetRegions,
+
               ...(dto.name !== undefined && {
                 name: dto.name,
               }),
@@ -1608,17 +1793,34 @@ private async hasPaidPromotionPayment(
       );
     }
 
-    // =========================================================
-    // NOVO PERÍODO
-    // =========================================================
+   // =========================================================
+// NOVO PERÍODO
+// =========================================================
 
-    const now = new Date();
+const now = new Date();
 
-    const endsAt =
-      new Date(
-        now.getTime() +
-          PROMOTION_DURATION_MS,
-      );
+/*
+ * A duração foi definida quando a campanha foi criada.
+ *
+ * Em DRAFT, startsAt e endsAt guardam a duração escolhida,
+ * mas o tempo ainda não está a contar.
+ *
+ * Em PAUSED, guardam o tempo que restava quando foi pausada.
+ */
+
+const durationMs =
+  promotion.endsAt.getTime() -
+  promotion.startsAt.getTime();
+
+if (durationMs <= 0) {
+  throw new BadRequestException(
+    "A duração desta campanha é inválida.",
+  );
+}
+
+const endsAt = new Date(
+  now.getTime() + durationMs,
+);
 
     // =========================================================
     // ATIVAR
@@ -1718,14 +1920,44 @@ async pause(
     );
   }
 
+  const now = new Date();
+
+  // Tempo que ainda restava à campanha.
+  const remainingMs =
+    promotion.endsAt.getTime() -
+    now.getTime();
+
+  if (remainingMs <= 0) {
+    await this.prisma.productPromotion.update({
+      where: {
+        id: promotionId,
+      },
+
+      data: {
+        status: PromotionStatus.EXPIRED,
+      },
+    });
+
+    throw new BadRequestException(
+      "Esta campanha já terminou e não pode ser pausada.",
+    );
+  }
+
+  // Guardamos o período restante.
+  // O tempo ficará congelado enquanto estiver PAUSED.
+  const newEndsAt = new Date(
+    now.getTime() + remainingMs,
+  );
+
   return this.prisma.productPromotion.update({
     where: {
       id: promotionId,
     },
 
     data: {
-      status:
-        PromotionStatus.PAUSED,
+      status: PromotionStatus.PAUSED,
+      startsAt: now,
+      endsAt: newEndsAt,
     },
   });
 }
@@ -1760,14 +1992,47 @@ async pause(
   // =========================================================
 
   async getActivePromotions(
-    placement: PromotionPlacement,
-  ) {
+  placement: PromotionPlacement,
+  location: {
+    countryCode: string;
+    region: string | null;
+  },
+) {
     const now = new Date();
+
+    if (!location.countryCode) {
+  return [];
+}
 
     const promotions =
       await this.prisma.productPromotion.findMany({
         where: {
           status: PromotionStatus.ACTIVE,
+
+          targetCountryCode: location.countryCode,
+
+
+OR: location.region
+  ? [
+      {
+        targetRegions: {
+          isEmpty: true,
+        },
+      },
+      {
+        targetRegions: {
+          has: location.region,
+        },
+      },
+    ]
+  : [
+      {
+        targetRegions: {
+          isEmpty: true,
+        },
+      },
+    ],
+
 
           startsAt: {
             lte: now,
@@ -2000,10 +2265,23 @@ async pause(
       };
     }
 
-    const activePromotions =
-      await this.getActivePromotions(
-        PromotionPlacement.FEED,
-      );
+    const location =
+  await this.resolvePromotionLocation(options);
+
+if (!location) {
+  return {
+    start,
+    limit,
+    positions,
+    promotions: [],
+  };
+}
+
+const activePromotions =
+  await this.getActivePromotions(
+    PromotionPlacement.FEED,
+    location,
+  );
 
     if (!activePromotions.length) {
       return {
@@ -2072,36 +2350,54 @@ async pause(
   // =========================================================
 
   async getSearchPromotions(
-    seed: string = "default",
-  ) {
-    const promotions =
-      await this.getActivePromotions(
-        PromotionPlacement.SEARCH,
-      );
+  seed: string = "default",
+  options: PublicPromotionOptions = {},
+) {
+  const location =
+    await this.resolvePromotionLocation(options);
 
-    return this.rotatePromotions(
-      promotions,
-      seed,
-    );
+  if (!location) {
+    return [];
   }
+
+  const promotions =
+    await this.getActivePromotions(
+      PromotionPlacement.SEARCH,
+      location,
+    );
+
+  return this.rotatePromotions(
+    promotions,
+    seed,
+  );
+}
 
   // =========================================================
   // BUSCAR PRODUTOS PROMOVIDOS PARA CATEGORIA
   // =========================================================
 
-  async getCategoryPromotions(
-    seed: string = "default",
-  ) {
-    const promotions =
-      await this.getActivePromotions(
-        PromotionPlacement.CATEGORY,
-      );
+ async getCategoryPromotions(
+  seed: string = "default",
+  options: PublicPromotionOptions = {},
+) {
+  const location =
+    await this.resolvePromotionLocation(options);
 
-    return this.rotatePromotions(
-      promotions,
-      seed,
-    );
+  if (!location) {
+    return [];
   }
+
+  const promotions =
+    await this.getActivePromotions(
+      PromotionPlacement.CATEGORY,
+      location,
+    );
+
+  return this.rotatePromotions(
+    promotions,
+    seed,
+  );
+}
 
   // =========================================================
   // POSIÇÕES DAS PROMOÇÕES NO FEED
@@ -2226,32 +2522,27 @@ const now = new Date();
 let currentStatus =
   promotion.status;
 
-// Se a data final já passou, a campanha
-// deve ser considerada expirada, desde que
-// ainda não esteja num estado final.
-const isAlreadyFinalized =
-  promotion.status ===
-    PromotionStatus.EXPIRED ||
-  promotion.status ===
-    PromotionStatus.COMPLETED ||
-  promotion.status ===
-    PromotionStatus.CANCELLED;
+
+// =========================================================
+// VERIFICAR EXPIRAÇÃO POR DATA
+// =========================================================
+
+// Apenas campanhas ACTIVE podem expirar pelo tempo.
+// DRAFT ainda não começou a contar.
+// PAUSED tem o período congelado.
 
 if (
-  promotion.endsAt <= now &&
-  !isAlreadyFinalized
+  promotion.status === PromotionStatus.ACTIVE &&
+  promotion.endsAt <= now
 ) {
-  currentStatus =
-    PromotionStatus.EXPIRED;
+  currentStatus = PromotionStatus.EXPIRED;
 
   await this.prisma.productPromotion.update({
     where: {
       id: promotionId,
-    },
-
+   },
     data: {
-      status:
-        PromotionStatus.EXPIRED,
+      status: PromotionStatus.EXPIRED,
     },
   });
 }
@@ -2262,10 +2553,8 @@ if (
 // =========================================================
 
 if (
-  currentStatus !==
-    PromotionStatus.EXPIRED &&
-  currentStatus !==
-    PromotionStatus.COMPLETED
+  currentStatus !== PromotionStatus.EXPIRED &&
+  currentStatus !== PromotionStatus.COMPLETED
 ) {
   throw new BadRequestException(
     "O novo pacote só pode ser contratado depois que a campanha terminar.",
@@ -2374,6 +2663,10 @@ if (
 
           priority:
             promotion.priority,
+
+            locationMode: promotion.locationMode,
+targetCountryCode: promotion.targetCountryCode,
+targetRegions: promotion.targetRegions,
 
           placements: {
             create:
@@ -2613,4 +2906,79 @@ async confirmPromotionPayment(
     },
   });
 }
+
+private async resolvePromotionLocation(
+  options: PublicPromotionOptions,
+): Promise<{
+  countryCode: string;
+  region: string | null;
+} | null> {
+
+  // 1. Se o frontend enviou uma localização,
+  // ela tem prioridade, mesmo para utilizadores autenticados.
+  const selectedCountry =
+    options.location?.country?.trim().toUpperCase();
+
+  if (selectedCountry) {
+    return {
+      countryCode: selectedCountry,
+      region:
+        options.location?.region?.trim() || null,
+    };
+  }
+
+  // 2. Só usamos o perfil como localização padrão
+  // quando não foi enviada uma localização pelo filtro.
+  if (options.userId) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: options.userId,
+      },
+      select: {
+        countryCode: true,
+        region: true,
+      },
+    });
+
+    if (!user?.countryCode) {
+      return null;
+    }
+
+    return {
+      countryCode: user.countryCode.trim().toUpperCase(),
+      region: user.region?.trim() || null,
+    };
+  }
+
+  // 3. Visitante sem localização selecionada.
+  return null;
+}
+
+
+private validatePromotionRegions(
+  countryCode: string,
+  regions: string[],
+): string[] {
+  const allowedRegions =
+    REGIONS[countryCode as keyof typeof REGIONS];
+
+  if (!allowedRegions) {
+    throw new BadRequestException(
+      "O país selecionado não está disponível para promoções.",
+    );
+  }
+
+  const invalidRegions = regions.filter(
+    (region) => !allowedRegions.includes(region),
+  );
+
+  if (invalidRegions.length > 0) {
+    throw new BadRequestException(
+      `As seguintes províncias não pertencem ao país selecionado: ${invalidRegions.join(", ")}.`,
+    );
+  }
+
+  return regions;
+}
+
 }

@@ -13,6 +13,18 @@ import {
   getPromotionPackages,
 } from "../services/promotions";
 
+import {
+  Flame,
+  Search,
+  Tag,
+  ArrowLeft,
+  AlertTriangle,
+  Wallet,
+  Lightbulb,
+} from "lucide-react";
+
+import type { LucideIcon } from "lucide-react";
+
 type PromotionType =
   | "feed"
   | "search"
@@ -49,25 +61,25 @@ const promotionLabels: Record<
   {
     title: string;
     description: string;
-    icon: string;
+    icon: LucideIcon;
   }
 > = {
   feed: {
-    icon: "🔥",
+    icon: Flame,
     title: "Promoção no Feed",
     description:
       "Seu produto poderá aparecer em destaque no feed através de um carrossel patrocinado.",
   },
 
   search: {
-    icon: "🔎",
+    icon: Search,
     title: "Promoção na Pesquisa",
     description:
       "Seus produtos poderão aparecer em posições patrocinadas nos resultados de pesquisa.",
   },
 
   category: {
-    icon: "🏷️",
+    icon: Tag,
     title: "Promoção nas Categorias",
     description:
       "Seus produtos poderão aparecer em destaque dentro das categorias.",
@@ -231,9 +243,13 @@ export default function PromotionPackagesPage() {
             "var(--surface)",
           color: "var(--text)",
           cursor: "pointer",
+          display: "flex",
+alignItems: "center",
+gap: 8,
         }}
       >
-        ← Voltar
+        <ArrowLeft size={17} />
+Voltar
       </button>
 
       {/* CABEÇALHO */}
@@ -244,13 +260,13 @@ export default function PromotionPackagesPage() {
         }}
       >
         <div
-          style={{
-            fontSize: 36,
-            marginBottom: 8,
-          }}
-        >
-          {promotion.icon}
-        </div>
+  style={{
+    marginBottom: 8,
+    color: "var(--primary)",
+  }}
+>
+  <promotion.icon size={36} strokeWidth={1.8} />
+</div>
 
         <h1
           style={{
@@ -322,7 +338,16 @@ export default function PromotionPackagesPage() {
               "var(--text)",
           }}
         >
-          ⚠️ {error}
+          <div
+  style={{
+    display: "flex",
+    alignItems: "center",
+    gap: 9,
+  }}
+>
+  <AlertTriangle size={19} color="var(--danger)" />
+  {error}
+</div>
         </div>
       )}
 
@@ -514,8 +539,16 @@ export default function PromotionPackagesPage() {
                           fontSize: 12,
                         }}
                       >
-                        💰 Melhor custo
-                        por impressão
+                        <div
+  style={{
+    display: "flex",
+    alignItems: "center",
+    gap: 7,
+  }}
+>
+  <Wallet size={16} />
+  Melhor custo por impressão
+</div>
                       </div>
                     )}
 
@@ -571,11 +604,27 @@ export default function PromotionPackagesPage() {
           lineHeight: 1.5,
         }}
       >
-        💡 O número de impressões
-        representa a quantidade máxima
-        de vezes que a campanha poderá
-        ser exibida. O pagamento ainda
-        não está integrado nesta etapa.
+       <div
+  style={{
+    display: "flex",
+    alignItems: "flex-start",
+    gap: 10,
+  }}
+>
+  <Lightbulb
+    size={19}
+    style={{
+      flexShrink: 0,
+      marginTop: 1,
+    }}
+  />
+
+  <span>
+    O número de impressões representa a quantidade máxima
+    de vezes que a campanha poderá ser exibida. O pagamento
+    ainda não está integrado nesta etapa.
+  </span>
+</div>
       </div>
     </div>
   );

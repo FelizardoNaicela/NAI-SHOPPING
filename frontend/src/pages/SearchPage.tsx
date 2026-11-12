@@ -492,31 +492,33 @@ export default function SearchPage() {
 
           <div className={styles.productsGrid}>
             <PromotedMarketplaceSlots
-              items={products}
-              premiumProduct={premiumProduct}
-              placement="SEARCH"
-              loading={loading || loadingMore}
-              renderItem={product => (
-                <ProductCard
-                  product={{
-                    id: product.id,
-                    name: product.name,
-                    type: product.type,
-                    price: product.price,
-                    stock: product.stock,
-                    discountedPrice: product.discountedPrice ?? null,
-                    activeDiscount: product.activeDiscount ?? null,
-                    imageUrl: product.imageUrl,
-                    storeName: product.store?.name ?? product.storeName,
-                    currentBid: product.currentBid,
-                    auctionStartPrice: product.auctionStartPrice,
-                    auctionEndsAt: product.auctionEndsAt,
-                    auctionClosed: product.auctionClosed,
-                  }}
-                  showStore
-                />
-              )}
-            />
+  items={products}
+  premiumProduct={premiumProduct}
+  placement="SEARCH"
+  country={filters.country}
+  region={filters.region}
+  loading={loading || loadingMore}
+  renderItem={product => (
+    <ProductCard
+      product={{
+        id: product.id,
+        name: product.name,
+        type: product.type,
+        price: product.price,
+        stock: product.stock,
+        discountedPrice: product.discountedPrice ?? null,
+        activeDiscount: product.activeDiscount ?? null,
+        imageUrl: product.imageUrl,
+        storeName: product.store?.name ?? product.storeName,
+        currentBid: product.currentBid,
+        auctionStartPrice: product.auctionStartPrice,
+        auctionEndsAt: product.auctionEndsAt,
+        auctionClosed: product.auctionClosed,
+      }}
+      showStore
+    />
+  )}
+/>
           </div>
 
           {loadingMore && (

@@ -349,20 +349,19 @@ export default function CategoryPage() {
 
       <div className={styles.productsGrid}>
         <PromotedMarketplaceSlots
-          items={items}
-          premiumProduct={premiumProduct}
-          placement="CATEGORY"
-          loading={
-            loading ||
-            loadingMore
-          }
-          renderItem={product => (
-            <ProductCard
-              product={product}
-              showStore
-            />
-          )}
-        />
+  items={items}
+  premiumProduct={premiumProduct}
+  placement="CATEGORY"
+  country={filters.country}
+  region={filters.region}
+  loading={loading || loadingMore}
+  renderItem={product => (
+    <ProductCard
+      product={product}
+      showStore
+    />
+  )}
+/>
       </div>
 
       {/*

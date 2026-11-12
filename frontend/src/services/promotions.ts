@@ -4,10 +4,24 @@ import { api } from "./api";
 // TIPOS
 // =========================================================
 
+
 export type PromotionPlacement =
   | "FEED"
   | "SEARCH"
   | "CATEGORY";
+
+export type PromotionLocationOptions = {
+  country?: string;
+  region?: string;
+};
+
+export type PromotionLocationMode = "INHERITED" | "CUSTOM";
+
+export type PromotionLocationData = {
+  locationMode: PromotionLocationMode;
+  targetCountryCode?: string;
+  targetRegions?: string[];
+};
 
 // =========================================================
 // PAGAMENTO DE PROMOÇÃO
@@ -68,79 +82,62 @@ export async function getFeedPromotions(options?: {
   start?: number;
   limit?: number;
   seed?: string;
+  country?: string;
+  region?: string;
 }) {
-  const response = await api.get(
-    "/promotions/public/feed",
-    {
-      params: {
-        start: options?.start ?? 0,
-        limit: options?.limit ?? 10,
-        seed:
-          options?.seed ??
-          "default",
-      },
+  const response = await api.get("/promotions/public/feed", {
+    params: {
+      start: options?.start ?? 0,
+      limit: options?.limit ?? 10,
+      seed: options?.seed ?? "default",
+      country: options?.country,
+      region: options?.region,
     },
-  );
+  });
 
   return response.data;
 }
 
-// =========================================================
-// PESQUISA
-// =========================================================
-
-export async function getSearchPromotions(
-  options?: {
-    seed?: string;
-  },
-) {
-  const response = await api.get(
-    "/promotions/public/search",
-    {
-      params: {
-        seed:
-          options?.seed ??
-          "default",
-      },
+export async function getSearchPromotions(options?: {
+  seed?: string;
+  country?: string;
+  region?: string;
+}) {
+  const response = await api.get("/promotions/public/search", {
+    params: {
+      seed: options?.seed ?? "default",
+      country: options?.country,
+      region: options?.region,
     },
-  );
+  });
 
   return response.data;
 }
 
-// =========================================================
-// CATEGORIA
-// =========================================================
-
-export async function getCategoryPromotions(
-  options?: {
-    seed?: string;
-  },
-) {
-  const response = await api.get(
-    "/promotions/public/category",
-    {
-      params: {
-        seed:
-          options?.seed ??
-          "default",
-      },
+export async function getCategoryPromotions(options?: {
+  seed?: string;
+  country?: string;
+  region?: string;
+}) {
+  const response = await api.get("/promotions/public/category", {
+    params: {
+      seed: options?.seed ?? "default",
+      country: options?.country,
+      region: options?.region,
     },
-  );
+  });
 
   return response.data;
-}
-
-// =========================================================
-// PROMOÇÕES POR LOCAL
-// =========================================================
-
+ }
+ 
 export async function getPromotionsByPlacement(
   placement: PromotionPlacement,
   options?: {
     start?: number;
     limit?: number;
     seed?: string;
+    country?: string;
+    region?: string;
   },
 ) {
   switch (placement) {
@@ -150,18 +147,21 @@ export async function getPromotionsByPlacement(
     case "SEARCH":
       return getSearchPromotions({
         seed: options?.seed,
+        country: options?.country,
+        region: options?.region,
       });
 
     case "CATEGORY":
       return getCategoryPromotions({
         seed: options?.seed,
+        country: options?.country,
+        region: options?.region,
       });
 
     default:
       return [];
   }
-}
-
+ }
 // =========================================================
 // REGISTRAR IMPRESSÃO
 // =========================================================
@@ -188,12 +188,12 @@ export async function createPromotion(data: {
   priority?: number;
   placements: PromotionPlacement[];
   productIds: string[];
-}) {
-  const response = await api.post(
-    "/promotions",
-    data,
-  );
 
+  locationMode?: PromotionLocationMode;
+  targetCountryCode?: string;
+  targetRegions?: string[];
+}) {
+  const response = await api.post("/promotions", data);
   return response.data;
 }
 

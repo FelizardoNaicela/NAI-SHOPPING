@@ -1,5 +1,12 @@
 import { useNavigate, useParams } from "react-router-dom";
 import FloatingDrawers from "../components/drawer/FloatingDrawers";
+import {
+  Flame,
+  Search,
+  Tag,
+  ArrowLeft,
+  ClipboardList,
+} from "lucide-react";
 
 type PromotionType =
   | "FEED"
@@ -8,7 +15,7 @@ type PromotionType =
 
 type PromotionOption = {
   type: PromotionType;
-  icon: string;
+  icon: React.ElementType;
   title: string;
   description: string;
   effect: string;
@@ -17,7 +24,7 @@ type PromotionOption = {
 const promotionOptions: PromotionOption[] = [
   {
     type: "FEED",
-    icon: "🔥",
+    icon: Flame,
     title: "Promoção no Feed",
     description:
       "Seus produtos aparecem em um carrossel patrocinado no feed.",
@@ -26,7 +33,7 @@ const promotionOptions: PromotionOption[] = [
   },
   {
     type: "SEARCH",
-    icon: "🔎",
+    icon: Search,
     title: "Promoção na Pesquisa",
     description:
       "Seus produtos aparecem entre os resultados patrocinados.",
@@ -35,7 +42,7 @@ const promotionOptions: PromotionOption[] = [
   },
   {
     type: "CATEGORY",
-    icon: "🏷️",
+    icon: Tag,
     title: "Promoção nas Categorias",
     description:
       "Seus produtos aparecem como produtos promovidos dentro das categorias.",
@@ -85,9 +92,13 @@ export default function PromotionPage() {
       color: "var(--text)",
       cursor: "pointer",
       fontWeight: 600,
+      display: "flex",
+alignItems: "center",
+gap: 8,
     }}
   >
-    ← Voltar
+   <ArrowLeft size={17} />
+Voltar
   </button>
 
   <button
@@ -106,7 +117,8 @@ export default function PromotionPage() {
       gap: 8,
     }}
   >
-    📋 Minhas promoções
+<ClipboardList size={18} />
+Minhas promoções
   </button>
 </div>
 
@@ -117,7 +129,16 @@ export default function PromotionPage() {
             fontSize: 28,
           }}
         >
-          🔥 Promover produtos
+          <span
+  style={{
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 10,
+  }}
+>
+  <Flame size={27} />
+  Promover produtos
+</span>
         </h1>
 
         <p
@@ -151,13 +172,23 @@ export default function PromotionPage() {
             }}
           >
             <div
-              style={{
-                fontSize: 32,
-                marginBottom: 14,
-              }}
-            >
-              {option.icon}
-            </div>
+  style={{
+    width: 54,
+    height: 54,
+    marginBottom: 14,
+    borderRadius: 14,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "var(--surface-glass)",
+    border: "1px solid var(--border)",
+  }}
+>
+  <option.icon
+    size={28}
+    strokeWidth={1.8}
+  />
+</div>
 
             <h2
               style={{

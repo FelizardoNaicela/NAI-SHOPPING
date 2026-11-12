@@ -172,6 +172,11 @@ enum PaymentType {
   OTHER
 }
 
+enum PromotionLocationMode {
+  INHERITED
+  CUSTOM
+}
+
 model VerificationRequest {
   id String @id @default(uuid())
 
@@ -666,6 +671,14 @@ model ProductPromotion {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // LOCALIZAÇÃO DA PROMOÇÃO
+
+  locationMode PromotionLocationMode @default(INHERITED)
+
+  targetCountryCode String
+  targetRegions     String[] @default([])
+
+  @@index([targetCountryCode, targetRegions])
   @@index([storeId])
   @@index([packageId])
   @@index([status])

@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { REGIONS } from "../../shared/regions";
 import styles from "./MarketplaceFilters.module.css";
+import { useAuth } from "../../auth/AuthProvider";
 
 export type MarketplaceFiltersValue = {
   country: string;
@@ -25,6 +26,38 @@ export default function MarketplaceFilters({
   defaultCollapsed = true,
 }: Props) {
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
+  const { user, isAuthenticated } = useAuth();
+
+const latestValue = useRef(value);
+const latestOnChange = useRef(onChange);
+
+latestValue.current = value;
+latestOnChange.current = onChange;
+
+useEffect(() => {
+  if (!isAuthenticated || !user?.countryCode) return;
+
+  const country = user.countryCode.trim().toUpperCase();
+  const region = user.region?.trim() || "";
+
+  if (
+    latestValue.current.country === country &&
+    latestValue.current.region === region
+  ) {
+    return;
+  }
+
+  latestOnChange.current({
+    ...latestValue.current,
+    country,
+    region,
+  });
+}, [
+  isAuthenticated,
+  user?.id,
+  user?.countryCode,
+  user?.region,
+]);
 
   const availableRegions =
     REGIONS[value.country as keyof typeof REGIONS] || [];

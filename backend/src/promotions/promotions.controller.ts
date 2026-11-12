@@ -17,6 +17,13 @@ import { JwtAuthGuard } from "../auth/jwt/jwt-auth.guard";
 
 import type { Request } from "express";
 
+import { OptionalJwtAuthGuard } from "../auth/jwt/optional-jwt-auth.guard";
+
+type PromotionLocation = {
+  country?: string;
+  region?: string;
+};
+
 @Controller("promotions")
 export class PromotionsController {
   constructor(
@@ -64,45 +71,56 @@ export class PromotionsController {
   // FEED
   // =========================================================
 
-  @Get("public/feed")
-  async feed(
-    @Query("start") start?: string,
-    @Query("limit") limit?: string,
-    @Query("seed") seed?: string,
-  ) {
-    const parsedStart =
-      Number(start ?? 0);
+  @UseGuards(OptionalJwtAuthGuard)
+@Get("public/feed")
+async feed(
+  @Req() req: Request,
+  @Query("start") start?: string,
+  @Query("limit") limit?: string,
+  @Query("seed") seed?: string,
+  @Query("country") country?: string,
+  @Query("region") region?: string,
+) {
+  const parsedStart = Number(start ?? 0);
+  const parsedLimit = Number(limit ?? 10);
 
-    const parsedLimit =
-      Number(limit ?? 10);
-
-    return this.promotionsService.getFeedPromotions({
-      start:
-        Number.isFinite(parsedStart)
-          ? parsedStart
-          : 0,
-
-      limit:
-        Number.isFinite(parsedLimit) &&
-        parsedLimit > 0
-          ? parsedLimit
-          : 10,
-
-      seed:
-        seed ?? "default",
-    });
-  }
+  return this.promotionsService.getFeedPromotions({
+    start: Number.isFinite(parsedStart) ? parsedStart : 0,
+    limit:
+      Number.isFinite(parsedLimit) && parsedLimit > 0
+        ? parsedLimit
+        : 10,
+    seed: seed ?? "default",
+    userId: (req as any).user?.sub,
+    location: { country, region },
+  });
+}
 
   // =========================================================
   // PESQUISA
   // =========================================================
 
+    // =========================================================
+  // PESQUISA
+  // =========================================================
+
+  @UseGuards(OptionalJwtAuthGuard)
   @Get("public/search")
   async search(
+    @Req() req: Request,
     @Query("seed") seed?: string,
+    @Query("country") country?: string,
+    @Query("region") region?: string,
   ) {
     return this.promotionsService.getSearchPromotions(
       seed ?? "default",
+      {
+        userId: (req as any).user?.sub,
+        location: {
+          country,
+          region,
+        },
+      },
     );
   }
 
@@ -110,12 +128,27 @@ export class PromotionsController {
   // CATEGORIA
   // =========================================================
 
+    // =========================================================
+  // CATEGORIA
+  // =========================================================
+
+  @UseGuards(OptionalJwtAuthGuard)
   @Get("public/category")
   async category(
+    @Req() req: Request,
     @Query("seed") seed?: string,
+    @Query("country") country?: string,
+    @Query("region") region?: string,
   ) {
     return this.promotionsService.getCategoryPromotions(
       seed ?? "default",
+      {
+        userId: (req as any).user?.sub,
+        location: {
+          country,
+          region,
+        },
+      },
     );
   }
 
