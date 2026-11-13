@@ -7,6 +7,7 @@ import ConversationList, {
 } from "../components/conversation/ConversationList";
 import styles from "./Inbox.module.css";
 import { getImageUrl } from "../utils/image";
+import FloatingDrawers from "../components/drawer/FloatingDrawers";
 
 type ConversationRaw = {
   id: string;
@@ -339,6 +340,7 @@ if (activeId) {
   return (
 
     <>
+    <FloatingDrawers/>
     <div
     className={`${styles.wrapper}
     ${

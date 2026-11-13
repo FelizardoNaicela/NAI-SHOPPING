@@ -13,10 +13,7 @@ import DrawerMenu from "./DrawerMenu";
 
 import styles from "../layouts/MainLayout.module.css";
 
-import { useAuth } from "../../auth/AuthProvider";
-
-import PullToRefresh from "../PullToRefresh";
-
+ import { useAuth } from "../../auth/AuthProvider";
 import useHeaderNotifications from "../../hooks/useHeaderNotifications";
 
 import {
@@ -193,9 +190,7 @@ export default function FloatingDrawers() {
   }, [isAuthenticated]);
 
   return (
-    <>
-
-      <PullToRefresh />
+   <>
 
       {/* =====================================
           BOTÃO ESQUERDO
