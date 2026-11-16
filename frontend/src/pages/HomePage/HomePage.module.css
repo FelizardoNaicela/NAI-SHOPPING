@@ -1,0 +1,116 @@
+
+.page {
+    width: 100%;
+    min-width: 0;
+}
+
+.tabs {
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.tab {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    transition: .25s;
+}
+
+.tab:hover {
+    border-color: var(--primary);
+}
+
+.activeTab {
+    background: var(--primary);
+    color: #fff;
+    border: 1px solid var(--primary);
+}
+
+/* FAIXA INTELIGENTE NO MOBILE */
+
+@media (max-width: 700px) {
+    .tabs {
+        position: sticky;
+        top: 96px;
+        z-index: 950;
+
+        width: calc(100% + 32px);
+        height: 36px;
+        box-sizing: border-box;
+
+        margin-top: -16px;
+        margin-left: -16px;
+        margin-bottom: 12px;
+
+        padding: 0;
+
+        display: flex;
+        align-items: stretch;
+        gap: 0;
+
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+
+        transition:
+            transform .22s ease,
+            opacity .22s ease;
+
+        will-change: transform, opacity;
+    }
+
+    /* Filtros transparentes quando não selecionados */
+
+    
+/* Filtros transparentes quando não selecionados */
+
+.tab {
+    flex: 1;
+    min-width: 0;
+    height: 36px;
+    box-sizing: border-box;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0 8px;
+
+    border: none;
+    border-radius: 0;
+
+    font-size: 13.33px;
+    font-weight: 400;
+
+    background: transparent;
+    color: var(--text);
+}
+
+.tab:hover {
+    border: none;
+    background: transparent;
+}
+
+/* Apenas o filtro selecionado fica laranja */
+
+.activeTab {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 0;
+    font-weight: 600;
+}
+
+
+    /* Esconder ao descer */
+
+    .tabsHidden {
+        transform: translateY(calc(-100% - 8px));
+        opacity: 0;
+        pointer-events: none;
+    }
+}

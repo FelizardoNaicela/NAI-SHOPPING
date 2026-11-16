@@ -12,6 +12,8 @@ import { Toaster } from "react-hot-toast";
 import "./styles/theme.css";
 import "./index.css";
 import "@fontsource-variable/inter";
+import BackButtonHandler from "./components/BackButtonHandler";
+import PullToRefreshHandler from "./components/PullToRefreshHandler";
 
 
 
@@ -20,8 +22,12 @@ ReactDOM.createRoot(
 ).render(
   <React.StrictMode>
     <BrowserRouter>
-    <ThemeProvider>
-      <AuthProvider>
+  <BackButtonHandler />
+
+  <ThemeProvider>
+  <PullToRefreshHandler />
+
+  <AuthProvider>
           <NotificationProvider>
             <UndoProvider>
               <App />

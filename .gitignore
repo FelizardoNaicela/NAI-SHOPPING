@@ -65,3 +65,5 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 # Uploads e evidências de teste (dados gerados durante a execução)
 backend/uploads/
 backend/legal-evidence/
+# Projeto Android local
+/mobile/

@@ -1,57 +1,85 @@
-import { useState } from "react";
+
+import { useEffect, useRef, useState } from "react";
 import GlobalFeed from "../../components/GlobalFeed";
 import FollowingFeed from "../../components/FollowingFeed";
+import styles from "./HomePage.module.css";
 
 export default function HomePage() {
+    const [tab, setTab] = useState<"explore" | "following">("following");
+    const [tabsVisible, setTabsVisible] = useState(true);
 
-  const [tab, setTab] = useState<"explore" | "following">("following");
+    const lastScrollY = useRef(0);
 
-  return (
-    <div>
+    useEffect(() => {
+        lastScrollY.current = window.scrollY;
 
-      {/* TABS */}
-      <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
+        function handleScroll() {
+            const currentScrollY = Math.max(0, window.scrollY);
+            const difference = currentScrollY - lastScrollY.current;
 
-        <button
-          onClick={() => setTab("following")}
-          style={tab === "following" ? activeTab : tabStyle}
-        >
-          Seguindo
-        </button>
+            if (currentScrollY <= 10) {
+                setTabsVisible(true);
+            } else if (difference > 6) {
+                // A descer: esconder os filtros
+                setTabsVisible(false);
+            } else if (difference < -6) {
+                // A subir: mostrar os filtros
+                setTabsVisible(true);
+            }
 
-        <button
-          onClick={() => setTab("explore")}
-          style={tab === "explore" ? activeTab : tabStyle}
-        >
-          Explorar
-        </button>
+            lastScrollY.current = currentScrollY;
+        }
 
+        window.addEventListener("scroll", handleScroll, {
+            passive: true,
+        });
 
+        return () => {
+            window.removeEventListener("scroll", handleScroll);
+        };
+    }, []);
 
-      </div>
+    return (
+        <div className={styles.page}>
 
-      {/* FEED */}
-      {tab === "following" && <FollowingFeed />}
-      {tab === "explore" && <GlobalFeed />}
-    </div>
-  );
-}
+            {/* FILTROS */}
 
-/* styles */
+            <div
+                className={`${styles.tabs} ${
+                    tabsVisible ? "" : styles.tabsHidden
+                }`}
+            >
+                <button
+                    type="button"
+                    onClick={() => setTab("following")}
+                    className={
+                        tab === "following"
+                            ? `${styles.tab} ${styles.activeTab}`
+                            : styles.tab
+                    }
+                    aria-pressed={tab === "following"}
+                >
+                    Seguindo
+                </button>
 
-const tabStyle: React.CSSProperties = {
-  padding: "8px 14px",
-  borderRadius: 8,
-  border: "1px solid var(--border)",
-  background: "var(--surface)",
-  color: "var(--text)",
-  cursor: "pointer",
-  transition: ".25s",
-};
+                <button
+                    type="button"
+                    onClick={() => setTab("explore")}
+                    className={
+                        tab === "explore"
+                            ? `${styles.tab} ${styles.activeTab}`
+                            : styles.tab
+                    }
+                    aria-pressed={tab === "explore"}
+                >
+                    Explorar
+                </button>
+            </div>
 
-const activeTab: React.CSSProperties = {
-  ...tabStyle,
-  background: "var(--primary)",
-  color: "#fff",
-  border: "1px solid var(--primary)",
-};
+            {/* FEED */}
+
+            {tab === "following" && <FollowingFeed />}
+            {tab === "explore" && <GlobalFeed />}
+
+        </div>
+    );}
