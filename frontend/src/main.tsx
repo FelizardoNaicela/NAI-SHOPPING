@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { ThemeProvider } from "./theme/ThemeProvider";
@@ -14,29 +14,29 @@ import "./index.css";
 import "@fontsource-variable/inter";
 import BackButtonHandler from "./components/BackButtonHandler";
 import PullToRefreshHandler from "./components/PullToRefreshHandler";
-
-
+import StartupGate from "./components/StartupGate";
 
 ReactDOM.createRoot(
   document.getElementById('root')!
 ).render(
   <React.StrictMode>
     <BrowserRouter>
-  <BackButtonHandler />
+      <BackButtonHandler />
 
-  <ThemeProvider>
-  <PullToRefreshHandler />
+      <ThemeProvider>
+        <PullToRefreshHandler />
 
-  <AuthProvider>
+        <AuthProvider>
           <NotificationProvider>
             <UndoProvider>
-              <App />
-              <Toaster
-        position="top-center"
-    />
+              <StartupGate>
+                <App />
+              </StartupGate>
+
+              <Toaster position="top-center" />
             </UndoProvider>
           </NotificationProvider>
-      </AuthProvider>
+        </AuthProvider>
       </ThemeProvider>
     </BrowserRouter>
   </React.StrictMode>

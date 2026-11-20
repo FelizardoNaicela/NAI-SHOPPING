@@ -76,7 +76,7 @@ function App() {
         }
       />
 
-      <Route path="/admin" element={<PainelPage />} />
+      <Route path="/administra01010101010101" element={<PainelPage />} />
 
       <Route
         path="/admin/ranking/national"
